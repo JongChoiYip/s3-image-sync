@@ -1,0 +1,10 @@
+{
+  "id": "attachment-imagebed-manager",
+  "name": "Attachment Imagebed Manager",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Scan local note attachments, upload to S3-compatible storage (R2/AWS S3/MinIO), and replace links safely.",
+  "author": "perinchiang",
+  "authorUrl": "https://github.com/perinchiang/attachment-imagebed-manager",
+  "isDesktopOnly": false
+}

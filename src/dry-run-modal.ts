@@ -1,0 +1,29 @@
+import { App, Modal } from "obsidian";
+import type AttachmentImagebedManagerPlugin from "./plugin";
+
+export class DryRunModal extends Modal {
+  plugin: AttachmentImagebedManagerPlugin;
+  count: number;
+  samples: string[];
+
+  constructor(app: App, plugin: AttachmentImagebedManagerPlugin, count: number, samples: string[]) {
+    super(app);
+    this.plugin = plugin;
+    this.count = count;
+    this.samples = samples;
+  }
+
+  onOpen(): void {
+    const t = this.plugin.t.bind(this.plugin);
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: t("vaultScanTitle") });
+    contentEl.createEl("p", { text: t("vaultScanFound", { count: this.count }) });
+    if (this.samples.length) {
+      contentEl.createEl("pre", {
+        text: this.samples.join("\n"),
+        cls: "attachment-imagebed-manager-log",
+      });
+    }
+  }
+}
