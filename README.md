@@ -44,7 +44,7 @@ Upload your Obsidian note attachments to the cloud and replace local links with 
 
 ### Manual Installation
 
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/perinchiang/attachment-imagebed-manager/releases)
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/perinchiang/obsidian-plugins-attachment-imagebed-manager/releases)
 2. Copy them to `<vault>/.obsidian/plugins/attachment-imagebed-manager/`
 3. Enable the plugin in Obsidian → Settings → Community Plugins
 
