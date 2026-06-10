@@ -7,7 +7,7 @@ const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
 
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function shouldRetry(status: number): boolean {

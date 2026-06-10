@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Setting, TFile } from "obsidian";
+import { App, Modal, Notice, Setting, TFile, activeDocument } from "obsidian";
 import type AttachmentImagebedManagerPlugin from "./plugin";
 import { Candidate, ProgressState, LocalFileRecord } from "./types";
 import { formatBytes, isPreviewableImage } from "./utils";
@@ -60,7 +60,7 @@ export class CandidateModal extends Modal {
     contentEl.empty();
     const t = this.plugin.t.bind(this.plugin);
 
-    contentEl.createEl("h2", { text: t("replaceTitle") });
+    new Setting(contentEl).setName(t("replaceTitle")).setHeading();
     contentEl.createEl("p", {
       text: t("candidateSummary", { path: this.noteFile.path, count: this.candidates.length }),
       cls: "attachment-imagebed-manager-summary",
@@ -86,7 +86,7 @@ export class CandidateModal extends Modal {
     // Bottom bar: select all + actions
     const bottomBar = rightPanel.createDiv({ cls: "attachment-imagebed-manager-bottom-bar" });
     const selectAllLabel = bottomBar.createEl("label", { cls: "attachment-imagebed-manager-select-all" });
-    const selectAllCb = selectAllLabel.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+    const selectAllCb = selectAllLabel.createEl("input", { type: "checkbox" });
     const filteredPaths = new Set(filtered.map((c) => c.file.path));
     selectAllCb.checked = filteredPaths.size > 0 && [...filteredPaths].every((p) => this.selected.has(p));
     selectAllCb.addEventListener("change", () => {
@@ -188,7 +188,7 @@ export class CandidateModal extends Modal {
     const list = containerEl.createDiv({ cls: "attachment-imagebed-manager-list" });
     for (const candidate of filtered) {
       const row = list.createDiv({ cls: "attachment-imagebed-manager-row" });
-      const checkbox = row.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+      const checkbox = row.createEl("input", { type: "checkbox" });
       checkbox.checked = this.selected.has(candidate.file.path);
       checkbox.addEventListener("change", () => {
         if (checkbox.checked) this.selected.add(candidate.file.path);
@@ -225,7 +225,7 @@ export class CandidateModal extends Modal {
       }
 
       const info = card.createDiv({ cls: "attachment-imagebed-manager-gallery-info" });
-      const checkbox = info.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+      const checkbox = info.createEl("input", { type: "checkbox" });
       checkbox.checked = this.selected.has(candidate.file.path);
       checkbox.addEventListener("change", () => {
         if (checkbox.checked) this.selected.add(candidate.file.path);
@@ -240,17 +240,17 @@ export class CandidateModal extends Modal {
   }
 
   createPreview(candidate: Candidate): HTMLElement {
-    const preview = document.createElement("div");
+    const preview = activeDocument.createElement("div");
     preview.className = "attachment-imagebed-manager-preview";
     if (isPreviewableImage(candidate.file.extension)) {
-      const image = document.createElement("img");
+      const image = activeDocument.createElement("img");
       image.src = this.app.vault.getResourcePath(candidate.file);
       image.alt = candidate.file.name;
       image.loading = "lazy";
       preview.appendChild(image);
       return preview;
     }
-    const badge = document.createElement("div");
+    const badge = activeDocument.createElement("div");
     badge.className = "attachment-imagebed-manager-file-badge";
     badge.textContent = candidate.file.extension.toUpperCase();
     preview.appendChild(badge);
@@ -271,10 +271,11 @@ export class CandidateModal extends Modal {
       });
       new Notice(t("replacedNotice", { count: result.replaced }));
       this.renderDeleteConfirmation(result.localFiles || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error("Attachment replacement failed", error);
-      new Notice(t("replaceFailed", { error: error.message || error }), 10000);
-      this.renderError(error);
+      new Notice(t("replaceFailed", { error: message }), 10000);
+      this.renderError(error instanceof Error ? error : new Error(message));
     }
   }
 
@@ -282,14 +283,14 @@ export class CandidateModal extends Modal {
     const t = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: t("uploadingTitle") });
+    new Setting(contentEl).setName(t("uploadingTitle")).setHeading();
     contentEl.createEl("p", {
       text: t("preparing", { count: total }),
       cls: "attachment-imagebed-manager-summary",
     });
     this.progressBar = contentEl.createEl("progress", {
       cls: "attachment-imagebed-manager-progress",
-    }) as HTMLProgressElement;
+    });
     this.progressBar.max = 100;
     this.progressBar.value = 0;
     this.progressText = contentEl.createDiv({
@@ -320,7 +321,7 @@ export class CandidateModal extends Modal {
     const t = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: t("linksReplacedTitle") });
+    new Setting(contentEl).setName(t("linksReplacedTitle")).setHeading();
     contentEl.createEl("p", {
       text: t("linksReplacedDesc"),
       cls: "attachment-imagebed-manager-summary",
@@ -342,16 +343,17 @@ export class CandidateModal extends Modal {
       .addButton((button) =>
         button
           .setButtonText(t("deleteLocal"))
-          .setWarning()
+          .setDestructive()
           .onClick(async () => {
             try {
               await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
               new Notice(t("movedToTrash", { count: localFiles.length }));
               this.close();
-            } catch (error: any) {
+            } catch (error: unknown) {
+              const message = error instanceof Error ? error.message : String(error);
               console.error("Attachment local delete failed", error);
-              new Notice(t("localDeleteFailed", { error: error.message || error }), 10000);
-              this.renderError(error);
+              new Notice(t("localDeleteFailed", { error: message }), 10000);
+              this.renderError(error instanceof Error ? error : new Error(message));
             }
           })
       );

@@ -119,6 +119,9 @@ var DEFAULT_SETTINGS = {
   pendingDeletes: [],
   logs: []
 };
+function isObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 function migrateOldSettings(loaded) {
   const result = {};
   if (loaded.r2) {
@@ -154,26 +157,25 @@ function migrateOldSettings(loaded) {
   return result;
 }
 function mergeSettings(defaults, loaded) {
-  const migrated = migrateOldSettings(loaded || {});
-  const s3Data = loaded?.s3 || migrated.s3 || loaded?.r2 || {};
+  const data = isObject(loaded) ? loaded : {};
+  const migrated = migrateOldSettings(data);
+  const s3Data = data.s3 || migrated.s3 || data.r2 || {};
   const s3 = {
     ...defaults.s3,
     ...s3Data,
-    provider: s3Data.provider || (loaded?.r2 ? "r2" : "r2"),
-    region: s3Data.region || (s3Data.provider === "r2" || loaded?.r2 ? "auto" : "us-east-1")
+    provider: s3Data.provider || (data.r2 ? "r2" : "r2"),
+    region: s3Data.region || (s3Data.provider === "r2" || data.r2 ? "auto" : "us-east-1")
   };
   return {
     ...defaults,
-    ...loaded,
-    ...migrated,
     s3,
-    enabledExtensions: migrated.enabledExtensions || loaded?.enabledExtensions || defaults.enabledExtensions,
-    minSizeRules: migrated.minSizeRules || loaded?.minSizeRules || defaults.minSizeRules,
-    autoCandidateExts: migrated.autoCandidateExts || loaded?.autoCandidateExts || defaults.autoCandidateExts,
-    customExtensions: loaded?.customExtensions || defaults.customExtensions,
-    customReplacements: migrated.customReplacements || loaded?.customReplacements || defaults.customReplacements,
-    pendingDeletes: Array.isArray(loaded?.pendingDeletes) ? loaded.pendingDeletes : [],
-    logs: Array.isArray(loaded?.logs) ? loaded.logs.slice(0, 100) : []
+    enabledExtensions: migrated.enabledExtensions || data.enabledExtensions || defaults.enabledExtensions,
+    minSizeRules: migrated.minSizeRules || data.minSizeRules || defaults.minSizeRules,
+    autoCandidateExts: migrated.autoCandidateExts || data.autoCandidateExts || defaults.autoCandidateExts,
+    customExtensions: data.customExtensions || defaults.customExtensions,
+    customReplacements: migrated.customReplacements || data.customReplacements || defaults.customReplacements,
+    pendingDeletes: Array.isArray(data.pendingDeletes) ? data.pendingDeletes : [],
+    logs: Array.isArray(data.logs) ? data.logs.slice(0, 100) : []
   };
 }
 function getReplacementForExt(ext, settings) {
@@ -385,8 +387,8 @@ function toAmzDate(date) {
 function debounce(fn, ms) {
   let timer;
   return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => fn(...args), ms);
   };
 }
 
@@ -394,7 +396,7 @@ function debounce(fn, ms) {
 var MAX_RETRIES = 3;
 var BASE_DELAY_MS = 1e3;
 function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 function shouldRetry(status) {
   return status === 429 || status >= 500;
@@ -834,11 +836,18 @@ var I18N = {
   }
 };
 function detectLocale() {
-  const hasWindow = typeof window !== "undefined";
-  const hasNavigator = typeof navigator !== "undefined";
   const momentLocale = typeof window.moment?.locale === "function" ? window.moment.locale() : "";
-  const language = momentLocale || (hasWindow ? window.localStorage?.getItem("language") : "") || (hasWindow ? window.localStorage?.getItem("obsidian-locale") : "") || (hasNavigator ? navigator.language : "") || "";
+  let language = momentLocale;
+  if (!language && typeof navigator !== "undefined") {
+    language = navigator.language || "";
+  }
   return String(language).toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+function detectLocaleFromApp(getLanguage2) {
+  const lang = getLanguage2();
+  if (lang)
+    return String(lang).toLowerCase().startsWith("zh") ? "zh" : "en";
+  return detectLocale();
 }
 function t(locale, key, params = {}) {
   const pack = I18N[locale] || I18N.en;
@@ -896,7 +905,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     const { contentEl } = this;
     contentEl.empty();
     const t2 = this.plugin.t.bind(this.plugin);
-    contentEl.createEl("h2", { text: t2("replaceTitle") });
+    new import_obsidian2.Setting(contentEl).setName(t2("replaceTitle")).setHeading();
     contentEl.createEl("p", {
       text: t2("candidateSummary", { path: this.noteFile.path, count: this.candidates.length }),
       cls: "attachment-imagebed-manager-summary"
@@ -1056,17 +1065,17 @@ var CandidateModal = class extends import_obsidian2.Modal {
     }
   }
   createPreview(candidate) {
-    const preview = document.createElement("div");
+    const preview = import_obsidian2.activeDocument.createElement("div");
     preview.className = "attachment-imagebed-manager-preview";
     if (isPreviewableImage(candidate.file.extension)) {
-      const image = document.createElement("img");
+      const image = import_obsidian2.activeDocument.createElement("img");
       image.src = this.app.vault.getResourcePath(candidate.file);
       image.alt = candidate.file.name;
       image.loading = "lazy";
       preview.appendChild(image);
       return preview;
     }
-    const badge = document.createElement("div");
+    const badge = import_obsidian2.activeDocument.createElement("div");
     badge.className = "attachment-imagebed-manager-file-badge";
     badge.textContent = candidate.file.extension.toUpperCase();
     preview.appendChild(badge);
@@ -1087,16 +1096,17 @@ var CandidateModal = class extends import_obsidian2.Modal {
       new import_obsidian2.Notice(t2("replacedNotice", { count: result.replaced }));
       this.renderDeleteConfirmation(result.localFiles || []);
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error("Attachment replacement failed", error);
-      new import_obsidian2.Notice(t2("replaceFailed", { error: error.message || error }), 1e4);
-      this.renderError(error);
+      new import_obsidian2.Notice(t2("replaceFailed", { error: message }), 1e4);
+      this.renderError(error instanceof Error ? error : new Error(message));
     }
   }
   renderProgress(total) {
     const t2 = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: t2("uploadingTitle") });
+    new import_obsidian2.Setting(contentEl).setName(t2("uploadingTitle")).setHeading();
     contentEl.createEl("p", {
       text: t2("preparing", { count: total }),
       cls: "attachment-imagebed-manager-summary"
@@ -1133,7 +1143,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     const t2 = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: t2("linksReplacedTitle") });
+    new import_obsidian2.Setting(contentEl).setName(t2("linksReplacedTitle")).setHeading();
     contentEl.createEl("p", {
       text: t2("linksReplacedDesc"),
       cls: "attachment-imagebed-manager-summary"
@@ -1151,15 +1161,16 @@ var CandidateModal = class extends import_obsidian2.Modal {
     new import_obsidian2.Setting(actions).addButton(
       (button) => button.setButtonText(t2("keepLocal")).onClick(() => this.close())
     ).addButton(
-      (button) => button.setButtonText(t2("deleteLocal")).setWarning().onClick(async () => {
+      (button) => button.setButtonText(t2("deleteLocal")).setDestructive().onClick(async () => {
         try {
           await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
           new import_obsidian2.Notice(t2("movedToTrash", { count: localFiles.length }));
           this.close();
         } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           console.error("Attachment local delete failed", error);
-          new import_obsidian2.Notice(t2("localDeleteFailed", { error: error.message || error }), 1e4);
-          this.renderError(error);
+          new import_obsidian2.Notice(t2("localDeleteFailed", { error: message }), 1e4);
+          this.renderError(error instanceof Error ? error : new Error(message));
         }
       })
     );
@@ -1194,7 +1205,7 @@ var DryRunModal = class extends import_obsidian3.Modal {
     const t2 = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: t2("vaultScanTitle") });
+    new import_obsidian3.Setting(contentEl).setName(t2("vaultScanTitle")).setHeading();
     contentEl.createEl("p", { text: t2("vaultScanFound", { count: this.count }) });
     if (this.samples.length) {
       contentEl.createEl("pre", {
@@ -1223,7 +1234,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
     const { containerEl } = this;
     containerEl.empty();
     const t2 = this.plugin.t.bind(this.plugin);
-    containerEl.createEl("h2", { text: t2("settingsTitle") });
+    new import_obsidian4.Setting(containerEl).setName(t2("settingsTitle")).setHeading();
     this.renderSetupStatus(containerEl);
     this.renderS3Settings(containerEl);
     this.renderGeneralSettings(containerEl);
@@ -1252,13 +1263,13 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
     const t2 = this.plugin.t.bind(this.plugin);
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
-    containerEl.createEl("h3", { text: t2("s3Storage") });
+    new import_obsidian4.Setting(containerEl).setName(t2("s3Storage")).setHeading();
     containerEl.createEl("p", {
       text: t2("s3SetupGuide"),
       cls: "attachment-imagebed-manager-guide"
     });
     new import_obsidian4.Setting(containerEl).setName(t2("provider")).setDesc(t2("providerDesc")).addDropdown(
-      (dropdown) => dropdown.addOption("r2", t2("providerR2")).addOption("s3", t2("providerS3")).addOption("minio", t2("providerMinio")).addOption("custom", t2("providerCustom")).setValue(this.plugin.settings.s3.provider).onChange(async (value) => {
+      (dropdown) => dropdown.addOption("r2", t2("providerR2")).addOption("s3", t2("providerS3")).addOption("minio", t2("providerMinio")).addOption("custom", t2("providerCustom")).setValue(this.plugin.settings.s3.provider).onChange((value) => {
         const provider = value;
         this.plugin.settings.s3.provider = provider;
         if (provider === "r2") {
@@ -1266,7 +1277,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
         } else if (!this.plugin.settings.s3.region || this.plugin.settings.s3.region === "auto") {
           this.plugin.settings.s3.region = "us-east-1";
         }
-        await save();
+        void save();
         this.display();
       })
     );
@@ -1290,8 +1301,9 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
         if (isPassword)
           text.inputEl.type = "password";
         text.setPlaceholder(isPassword ? "********" : "");
-        text.setValue(String(this.plugin.settings.s3[key] || "")).onChange((value) => {
-          this.plugin.settings.s3[key] = value.trim();
+        const s3Key = key;
+        text.setValue(String(this.plugin.settings.s3[s3Key] || "")).onChange((value) => {
+          this.plugin.settings.s3[s3Key] = value.trim();
           debouncedSave();
         });
       });
@@ -1307,7 +1319,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
         try {
           this.plugin.ensureS3Settings();
         } catch (error) {
-          new import_obsidian4.Notice(error.message);
+          new import_obsidian4.Notice(error instanceof Error ? error.message : String(error));
           return;
         }
         button.setButtonText(t2("testing"));
@@ -1316,7 +1328,8 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
           await testS3Connection(this.plugin.settings.s3);
           new import_obsidian4.Notice(t2("testConnectionSuccess"));
         } catch (error) {
-          new import_obsidian4.Notice(t2("testConnectionFailed", { error: error.message || error }), 1e4);
+          const errMsg = error instanceof Error ? error.message : String(error);
+          new import_obsidian4.Notice(t2("testConnectionFailed", { error: errMsg }), 1e4);
         } finally {
           button.setButtonText(t2("testConnection"));
           button.setDisabled(false);
@@ -1328,18 +1341,18 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
     const t2 = this.plugin.t.bind(this.plugin);
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
-    containerEl.createEl("h3", { text: t2("generalSettings") });
+    new import_obsidian4.Setting(containerEl).setName(t2("generalSettings")).setHeading();
     new import_obsidian4.Setting(containerEl).setName(t2("pluginEnabled")).setDesc(t2("pluginEnabledDesc")).addToggle(
-      (toggle) => toggle.setValue(this.plugin.settings.enabled).onChange(async (value) => {
+      (toggle) => toggle.setValue(this.plugin.settings.enabled).onChange((value) => {
         this.plugin.settings.enabled = value;
         this.plugin.configureAutoScan();
-        await save();
+        void save();
       })
     );
     new import_obsidian4.Setting(containerEl).setName(t2("attachmentRoot")).setDesc(t2("attachmentRootDesc")).addText(
-      (text) => text.setValue(this.plugin.settings.attachmentRoot).onChange(async (value) => {
+      (text) => text.setValue(this.plugin.settings.attachmentRoot).onChange((value) => {
         this.plugin.settings.attachmentRoot = value.trim() || "99 Attachments";
-        await save();
+        void save();
       })
     );
     new import_obsidian4.Setting(containerEl).setName(t2("deletePolicy")).setDesc(t2("deletePolicyDesc")).addDropdown((dropdown) => {
@@ -1347,9 +1360,9 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
       if (!this.plugin.isMobile) {
         dropdown.addOption("delayed", t2("deleteDelayed"));
       }
-      dropdown.setValue(this.plugin.settings.deletePolicy).onChange(async (value) => {
+      dropdown.setValue(this.plugin.settings.deletePolicy).onChange((value) => {
         this.plugin.settings.deletePolicy = value;
-        await save();
+        void save();
         this.display();
       });
     });
@@ -1363,10 +1376,10 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
     }
     if (!this.plugin.isMobile) {
       new import_obsidian4.Setting(containerEl).setName(t2("automaticScan")).setDesc(t2("automaticScanDesc")).addToggle(
-        (toggle) => toggle.setValue(this.plugin.settings.autoScanEnabled).onChange(async (value) => {
+        (toggle) => toggle.setValue(this.plugin.settings.autoScanEnabled).onChange((value) => {
           this.plugin.settings.autoScanEnabled = value;
           this.plugin.configureAutoScan();
-          await save();
+          void save();
           this.display();
         })
       );
@@ -1400,7 +1413,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
   }
   renderFileTypeSettings(containerEl) {
     const t2 = this.plugin.t.bind(this.plugin);
-    containerEl.createEl("h3", { text: t2("fileTypes") });
+    new import_obsidian4.Setting(containerEl).setName(t2("fileTypes")).setHeading();
     containerEl.createEl("p", {
       text: t2("fileTypesDesc"),
       cls: "attachment-imagebed-manager-guide"
@@ -1439,24 +1452,24 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
     toggleBtn.textContent = defaultExpanded ? "\u25BC" : "\u25B6";
     const chipsBody = card.createDiv({ cls: "attachment-imagebed-manager-category-body" });
     if (!defaultExpanded)
-      chipsBody.style.display = "none";
+      chipsBody.addClass("attachment-imagebed-manager-collapsed");
     const chips = chipsBody.createDiv({ cls: "attachment-imagebed-manager-chips" });
     for (const ext of category.extensions) {
       const chip = chips.createEl("span", { cls: "attachment-imagebed-manager-chip" });
       if (enabledSet.has(ext))
         chip.addClass("attachment-imagebed-manager-chip-active");
       chip.textContent = `.${ext}`;
-      chip.addEventListener("click", async () => {
+      chip.addEventListener("click", () => {
         if (enabledSet.has(ext))
           enabledSet.delete(ext);
         else
           enabledSet.add(ext);
         settings.enabledExtensions = Array.from(enabledSet);
-        await this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.display();
       });
     }
-    catCheckbox.addEventListener("change", async () => {
+    catCheckbox.addEventListener("change", () => {
       for (const ext of category.extensions) {
         if (catCheckbox.checked)
           enabledSet.add(ext);
@@ -1464,10 +1477,10 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
           enabledSet.delete(ext);
       }
       settings.enabledExtensions = Array.from(enabledSet);
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.display();
     });
-    autoCheckbox.addEventListener("change", async () => {
+    autoCheckbox.addEventListener("change", () => {
       const enabledInCat = category.extensions.filter((e) => enabledSet.has(e));
       for (const ext of enabledInCat) {
         if (autoCheckbox.checked)
@@ -1476,13 +1489,13 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
           autoSet.delete(ext);
       }
       settings.autoCandidateExts = Array.from(autoSet);
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.display();
     });
     let expanded = defaultExpanded;
     toggleBtn.addEventListener("click", () => {
       expanded = !expanded;
-      chipsBody.style.display = expanded ? "" : "none";
+      chipsBody.toggleClass("attachment-imagebed-manager-collapsed", !expanded);
       toggleBtn.textContent = expanded ? "\u25BC" : "\u25B6";
     });
   }
@@ -1506,7 +1519,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
       inputValue = input.value;
     });
     const addBtn = inputRow.createEl("button", { text: t2("addExtension") });
-    addBtn.addEventListener("click", async () => {
+    addBtn.addEventListener("click", () => {
       const exts = inputValue.split(/[,\s]+/).map((e) => e.trim().replace(/^\./, "").toLowerCase()).filter(Boolean);
       for (const ext of exts) {
         if (!settings.customExtensions.includes(ext))
@@ -1515,7 +1528,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
           enabledSet.add(ext);
       }
       settings.enabledExtensions = Array.from(enabledSet);
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.display();
     });
     if (customExts.length > 0) {
@@ -1524,32 +1537,32 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
         const tag = tagContainer.createEl("span", { cls: "attachment-imagebed-manager-custom-tag" });
         const extCheckbox = tag.createEl("input", { type: "checkbox" });
         extCheckbox.checked = enabledSet.has(ext);
-        extCheckbox.addEventListener("change", async () => {
+        extCheckbox.addEventListener("change", () => {
           if (extCheckbox.checked)
             enabledSet.add(ext);
           else
             enabledSet.delete(ext);
           settings.enabledExtensions = Array.from(enabledSet);
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
           this.display();
         });
         tag.createSpan({ text: `.${ext}` });
         const autoCb = tag.createEl("input", { type: "checkbox" });
         autoCb.checked = autoSet.has(ext);
         autoCb.title = t2("autoScanShort");
-        autoCb.addEventListener("change", async () => {
+        autoCb.addEventListener("change", () => {
           if (autoCb.checked)
             autoSet.add(ext);
           else
             autoSet.delete(ext);
           settings.autoCandidateExts = Array.from(autoSet);
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
         });
         const autoSpan = tag.createEl("span", { cls: "attachment-imagebed-manager-auto-text" });
         autoSpan.textContent = t2("autoScanShort");
         const removeBtn = tag.createEl("span", { cls: "attachment-imagebed-manager-remove" });
         removeBtn.textContent = "\xD7";
-        removeBtn.addEventListener("click", async () => {
+        removeBtn.addEventListener("click", () => {
           settings.customExtensions = settings.customExtensions.filter((e) => e !== ext);
           enabledSet.delete(ext);
           settings.enabledExtensions = Array.from(enabledSet);
@@ -1557,7 +1570,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
           delete settings.customReplacements[ext];
           autoSet.delete(ext);
           settings.autoCandidateExts = Array.from(autoSet);
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
           this.display();
         });
       }
@@ -1566,9 +1579,9 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
   renderLogSection(containerEl) {
     const t2 = this.plugin.t.bind(this.plugin);
     const settings = this.plugin.settings;
-    containerEl.createEl("h3", { text: t2("recentLog") });
+    new import_obsidian4.Setting(containerEl).setName(t2("recentLog")).setHeading();
     if ((settings.pendingDeletes || []).length) {
-      containerEl.createEl("h4", { text: t2("pendingDeletes") });
+      new import_obsidian4.Setting(containerEl).setName(t2("pendingDeletes")).setHeading();
       containerEl.createEl("pre", {
         text: settings.pendingDeletes.slice(0, 20).map((entry) => `${new Date(entry.dueAt).toLocaleString()} ${entry.sourcePath}`).join("\n"),
         cls: "attachment-imagebed-manager-log"
@@ -1596,10 +1609,10 @@ var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
   isMobile = false;
   async onload() {
     await this.loadSettings();
-    this.locale = detectLocale();
-    this.isMobile = typeof this.app.isMobile === "function" ? this.app.isMobile() : typeof this.app.platform === "string" ? this.app.platform === "mobile" : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    this.locale = detectLocaleFromApp(import_obsidian5.getLanguage);
+    this.isMobile = import_obsidian5.Platform.isMobile;
     this.addRibbonIcon("upload-cloud", this.t("ribbonScan"), () => {
-      this.scanCurrentNote();
+      void this.scanCurrentNote();
     });
     this.addCommand({
       id: "scan-current-note",
@@ -1657,7 +1670,7 @@ var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
     this.autoScanTimer = window.setInterval(() => {
       this.runAutoScan().catch((error) => {
         console.error("Auto scan failed", error);
-        new import_obsidian5.Notice(this.t("autoScanFailed", { error: error.message || error }));
+        new import_obsidian5.Notice(this.t("autoScanFailed", { error: error instanceof Error ? error.message : String(error) }));
       });
     }, minutes * 60 * 1e3);
   }
@@ -1674,7 +1687,7 @@ var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
     try {
       this.ensureS3Settings();
     } catch (error) {
-      new import_obsidian5.Notice(error.message);
+      new import_obsidian5.Notice(error instanceof Error ? error.message : String(error));
       return;
     }
     const candidates = await this.findCandidatesInNote(activeFile, {
@@ -1722,8 +1735,7 @@ var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
       return;
     try {
       this.ensureS3Settings();
-    } catch (error) {
-      return;
+    } catch (_error) {
     }
     const minBytes = Math.max(0, Number(this.settings.autoScanMinSizeMiB) || 0) * 1024 * 1024;
     const files = this.app.vault.getMarkdownFiles();
@@ -2034,7 +2046,7 @@ var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
         });
         continue;
       }
-      await this.app.vault.trash(file, true);
+      await this.app.fileManager.trashFile(file);
       this.addLog({
         status,
         notePath: noteFile.path,

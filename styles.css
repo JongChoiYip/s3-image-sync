@@ -291,6 +291,11 @@
   line-height: 1.5;
 }
 
+/* ── Collapsible sections ── */
+.attachment-imagebed-manager-collapsed {
+  display: none;
+}
+
 /* ── View toggle ── */
 .attachment-imagebed-manager-view-toggle {
   display: flex;
@@ -313,10 +318,10 @@
   border-color: var(--interactive-accent);
 }
 
-.attachment-imagebed-manager-view-btn-active {
-  background: var(--interactive-accent) !important;
-  color: var(--text-on-accent) !important;
-  border-color: var(--interactive-accent) !important;
+.attachment-imagebed-manager-view-toggle .attachment-imagebed-manager-view-btn-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
 }
 
 /* ── Gallery view ── */

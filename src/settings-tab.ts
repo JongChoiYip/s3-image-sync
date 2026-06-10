@@ -1,7 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type AttachmentImagebedManagerPlugin from "./plugin";
 import { FILE_CATEGORIES } from "./file-categories";
-import { FileCategory, DeletePolicy, S3Provider } from "./types";
+import { FileCategory, DeletePolicy, S3Provider, S3Config } from "./types";
 import { debounce } from "./utils";
 import { testS3Connection } from "./s3-client";
 
@@ -25,7 +25,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
     containerEl.empty();
     const t = this.plugin.t.bind(this.plugin);
 
-    containerEl.createEl("h2", { text: t("settingsTitle") });
+    new Setting(containerEl).setName(t("settingsTitle")).setHeading();
     this.renderSetupStatus(containerEl);
     this.renderS3Settings(containerEl);
     this.renderGeneralSettings(containerEl);
@@ -66,7 +66,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
 
-    containerEl.createEl("h3", { text: t("s3Storage") });
+    new Setting(containerEl).setName(t("s3Storage")).setHeading();
     containerEl.createEl("p", {
       text: t("s3SetupGuide"),
       cls: "attachment-imagebed-manager-guide",
@@ -82,7 +82,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
           .addOption("minio", t("providerMinio"))
           .addOption("custom", t("providerCustom"))
           .setValue(this.plugin.settings.s3.provider)
-          .onChange(async (value) => {
+          .onChange((value) => {
             const provider = value as S3Provider;
             this.plugin.settings.s3.provider = provider;
             if (provider === "r2") {
@@ -90,7 +90,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
             } else if (!this.plugin.settings.s3.region || this.plugin.settings.s3.region === "auto") {
               this.plugin.settings.s3.region = "us-east-1";
             }
-            await save();
+            void save();
             this.display();
           })
       );
@@ -122,8 +122,9 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
         .addText((text) => {
           if (isPassword) text.inputEl.type = "password";
           text.setPlaceholder(isPassword ? "********" : "");
-          text.setValue(String((this.plugin.settings.s3 as any)[key] || "")).onChange((value) => {
-            (this.plugin.settings.s3 as any)[key] = value.trim();
+          const s3Key = key as keyof S3Config;
+          text.setValue(String(this.plugin.settings.s3[s3Key] || "")).onChange((value) => {
+            (this.plugin.settings.s3 as Record<string, string>)[s3Key] = value.trim();
             debouncedSave();
           });
         });
@@ -149,8 +150,8 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
         button.setButtonText(t("testConnection")).setCta().onClick(async () => {
           try {
             this.plugin.ensureS3Settings();
-          } catch (error: any) {
-            new Notice(error.message);
+          } catch (error: unknown) {
+            new Notice(error instanceof Error ? error.message : String(error));
             return;
           }
           button.setButtonText(t("testing"));
@@ -158,8 +159,9 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
           try {
             await testS3Connection(this.plugin.settings.s3);
             new Notice(t("testConnectionSuccess"));
-          } catch (error: any) {
-            new Notice(t("testConnectionFailed", { error: error.message || error }), 10000);
+          } catch (error: unknown) {
+            const errMsg = error instanceof Error ? error.message : String(error);
+            new Notice(t("testConnectionFailed", { error: errMsg }), 10000);
           } finally {
             button.setButtonText(t("testConnection"));
             button.setDisabled(false);
@@ -173,16 +175,16 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
 
-    containerEl.createEl("h3", { text: t("generalSettings") });
+    new Setting(containerEl).setName(t("generalSettings")).setHeading();
 
     new Setting(containerEl)
       .setName(t("pluginEnabled"))
       .setDesc(t("pluginEnabledDesc"))
       .addToggle((toggle) =>
-        toggle.setValue(this.plugin.settings.enabled).onChange(async (value) => {
+        toggle.setValue(this.plugin.settings.enabled).onChange((value) => {
           this.plugin.settings.enabled = value;
           this.plugin.configureAutoScan();
-          await save();
+          void save();
         })
       );
 
@@ -190,9 +192,9 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
       .setName(t("attachmentRoot"))
       .setDesc(t("attachmentRootDesc"))
       .addText((text) =>
-        text.setValue(this.plugin.settings.attachmentRoot).onChange(async (value) => {
+        text.setValue(this.plugin.settings.attachmentRoot).onChange((value) => {
           this.plugin.settings.attachmentRoot = value.trim() || "99 Attachments";
-          await save();
+          void save();
         })
       );
 
@@ -208,9 +210,9 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
         }
         dropdown
           .setValue(this.plugin.settings.deletePolicy)
-          .onChange(async (value) => {
+          .onChange((value) => {
             this.plugin.settings.deletePolicy = value as DeletePolicy;
-            await save();
+            void save();
             this.display();
           });
       });
@@ -232,12 +234,12 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
         .setName(t("automaticScan"))
         .setDesc(t("automaticScanDesc"))
         .addToggle((toggle) =>
-          toggle.setValue(this.plugin.settings.autoScanEnabled).onChange(async (value) => {
-            this.plugin.settings.autoScanEnabled = value;
-            this.plugin.configureAutoScan();
-            await save();
-            this.display();
-          })
+          toggle.setValue(this.plugin.settings.autoScanEnabled).onChange((value) => {
+          this.plugin.settings.autoScanEnabled = value;
+          this.plugin.configureAutoScan();
+          void save();
+          this.display();
+        })
         );
 
       if (this.plugin.settings.autoScanEnabled) {
@@ -282,7 +284,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
 
   private renderFileTypeSettings(containerEl: HTMLElement): void {
     const t = this.plugin.t.bind(this.plugin);
-    containerEl.createEl("h3", { text: t("fileTypes") });
+    new Setting(containerEl).setName(t("fileTypes")).setHeading();
     containerEl.createEl("p", {
       text: t("fileTypesDesc"),
       cls: "attachment-imagebed-manager-guide",
@@ -315,7 +317,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
     // ── Header row ──
     const headerRow = card.createDiv({ cls: "attachment-imagebed-manager-category-header" });
 
-    const catCheckbox = headerRow.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+    const catCheckbox = headerRow.createEl("input", { type: "checkbox" });
     catCheckbox.checked = catEnabled;
     catCheckbox.indeterminate = catPartiallyEnabled;
 
@@ -330,7 +332,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
       .every((e: string) => autoSet.has(e));
 
     const autoLabel = headerRow.createEl("label", { cls: "attachment-imagebed-manager-auto-label" });
-    const autoCheckbox = autoLabel.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+    const autoCheckbox = autoLabel.createEl("input", { type: "checkbox" });
     autoCheckbox.checked = autoEnabled;
     autoLabel.createSpan({ text: t("autoScanShort") });
 
@@ -339,48 +341,48 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
 
     // ── Chips body (collapsible) ──
     const chipsBody = card.createDiv({ cls: "attachment-imagebed-manager-category-body" });
-    if (!defaultExpanded) chipsBody.style.display = "none";
+    if (!defaultExpanded) chipsBody.addClass("attachment-imagebed-manager-collapsed");
 
     const chips = chipsBody.createDiv({ cls: "attachment-imagebed-manager-chips" });
     for (const ext of category.extensions) {
       const chip = chips.createEl("span", { cls: "attachment-imagebed-manager-chip" });
       if (enabledSet.has(ext)) chip.addClass("attachment-imagebed-manager-chip-active");
       chip.textContent = `.${ext}`;
-      chip.addEventListener("click", async () => {
+      chip.addEventListener("click", () => {
         if (enabledSet.has(ext)) enabledSet.delete(ext);
         else enabledSet.add(ext);
         settings.enabledExtensions = Array.from(enabledSet);
-        await this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.display();
       });
     }
 
     // ── Event handlers ──
-    catCheckbox.addEventListener("change", async () => {
+    catCheckbox.addEventListener("change", () => {
       for (const ext of category.extensions) {
         if (catCheckbox.checked) enabledSet.add(ext);
         else enabledSet.delete(ext);
       }
       settings.enabledExtensions = Array.from(enabledSet);
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.display();
     });
 
-    autoCheckbox.addEventListener("change", async () => {
+    autoCheckbox.addEventListener("change", () => {
       const enabledInCat = category.extensions.filter((e: string) => enabledSet.has(e));
       for (const ext of enabledInCat) {
         if (autoCheckbox.checked) autoSet.add(ext);
         else autoSet.delete(ext);
       }
       settings.autoCandidateExts = Array.from(autoSet);
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.display();
     });
 
     let expanded = defaultExpanded;
     toggleBtn.addEventListener("click", () => {
       expanded = !expanded;
-      chipsBody.style.display = expanded ? "" : "none";
+      chipsBody.toggleClass("attachment-imagebed-manager-collapsed", !expanded);
       toggleBtn.textContent = expanded ? "\u25bc" : "\u25b6";
     });
   }
@@ -403,11 +405,11 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
     const input = inputRow.createEl("input", {
       type: "text",
       placeholder: t("customExtPlaceholder"),
-    }) as HTMLInputElement;
+    });
     input.addEventListener("input", () => { inputValue = input.value; });
 
     const addBtn = inputRow.createEl("button", { text: t("addExtension") });
-    addBtn.addEventListener("click", async () => {
+    addBtn.addEventListener("click", () => {
       const exts = inputValue
         .split(/[,\s]+/)
         .map((e) => e.trim().replace(/^\./, "").toLowerCase())
@@ -417,7 +419,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
         if (!enabledSet.has(ext)) enabledSet.add(ext);
       }
       settings.enabledExtensions = Array.from(enabledSet);
-      await this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       this.display();
     });
 
@@ -426,26 +428,26 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
       for (const ext of customExts) {
         const tag = tagContainer.createEl("span", { cls: "attachment-imagebed-manager-custom-tag" });
 
-        const extCheckbox = tag.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+        const extCheckbox = tag.createEl("input", { type: "checkbox" });
         extCheckbox.checked = enabledSet.has(ext);
-        extCheckbox.addEventListener("change", async () => {
+        extCheckbox.addEventListener("change", () => {
           if (extCheckbox.checked) enabledSet.add(ext);
           else enabledSet.delete(ext);
           settings.enabledExtensions = Array.from(enabledSet);
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
           this.display();
         });
 
         tag.createSpan({ text: `.${ext}` });
 
-        const autoCb = tag.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+        const autoCb = tag.createEl("input", { type: "checkbox" });
         autoCb.checked = autoSet.has(ext);
         autoCb.title = t("autoScanShort");
-        autoCb.addEventListener("change", async () => {
+        autoCb.addEventListener("change", () => {
           if (autoCb.checked) autoSet.add(ext);
           else autoSet.delete(ext);
           settings.autoCandidateExts = Array.from(autoSet);
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
         });
 
         const autoSpan = tag.createEl("span", { cls: "attachment-imagebed-manager-auto-text" });
@@ -453,7 +455,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
 
         const removeBtn = tag.createEl("span", { cls: "attachment-imagebed-manager-remove" });
         removeBtn.textContent = "\u00d7";
-        removeBtn.addEventListener("click", async () => {
+        removeBtn.addEventListener("click", () => {
           settings.customExtensions = settings.customExtensions.filter((e) => e !== ext);
           enabledSet.delete(ext);
           settings.enabledExtensions = Array.from(enabledSet);
@@ -461,7 +463,7 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
           delete settings.customReplacements[ext];
           autoSet.delete(ext);
           settings.autoCandidateExts = Array.from(autoSet);
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
           this.display();
         });
       }
@@ -472,10 +474,10 @@ export class AttachmentImagebedSettingTab extends PluginSettingTab {
     const t = this.plugin.t.bind(this.plugin);
     const settings = this.plugin.settings;
 
-    containerEl.createEl("h3", { text: t("recentLog") });
+    new Setting(containerEl).setName(t("recentLog")).setHeading();
 
     if ((settings.pendingDeletes || []).length) {
-      containerEl.createEl("h4", { text: t("pendingDeletes") });
+      new Setting(containerEl).setName(t("pendingDeletes")).setHeading();
       containerEl.createEl("pre", {
         text: settings.pendingDeletes
           .slice(0, 20)

@@ -291,18 +291,22 @@ export const I18N: Record<string, Record<string, string>> = {
 };
 
 export function detectLocale(): string {
-  const hasWindow = typeof window !== "undefined";
-  const hasNavigator = typeof navigator !== "undefined";
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   const momentLocale = typeof (window as any).moment?.locale === "function"
-    ? (window as any).moment.locale()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    ? (window as any).moment.locale() as string
     : "";
-  const language =
-    momentLocale ||
-    (hasWindow ? window.localStorage?.getItem("language") : "") ||
-    (hasWindow ? window.localStorage?.getItem("obsidian-locale") : "") ||
-    (hasNavigator ? navigator.language : "") ||
-    "";
+  let language = momentLocale;
+  if (!language && typeof navigator !== "undefined") {
+    language = navigator.language || "";
+  }
   return String(language).toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+
+export function detectLocaleFromApp(getLanguage: () => string): string {
+  const lang = getLanguage();
+  if (lang) return String(lang).toLowerCase().startsWith("zh") ? "zh" : "en";
+  return detectLocale();
 }
 
 export function t(locale: string, key: string, params: Record<string, any> = {}): string {

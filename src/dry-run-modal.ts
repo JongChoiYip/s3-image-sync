@@ -1,4 +1,4 @@
-import { App, Modal } from "obsidian";
+import { App, Modal, Setting } from "obsidian";
 import type AttachmentImagebedManagerPlugin from "./plugin";
 
 export class DryRunModal extends Modal {
@@ -17,7 +17,7 @@ export class DryRunModal extends Modal {
     const t = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: t("vaultScanTitle") });
+    new Setting(contentEl).setName(t("vaultScanTitle")).setHeading();
     contentEl.createEl("p", { text: t("vaultScanFound", { count: this.count }) });
     if (this.samples.length) {
       contentEl.createEl("pre", {

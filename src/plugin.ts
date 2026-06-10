@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile } from "obsidian";
+import { Notice, Platform, Plugin, TFile, getLanguage } from "obsidian";
 import {
   Candidate,
   DeletePolicy,
@@ -25,7 +25,7 @@ import {
   safeFilename,
   trimSlashes,
 } from "./utils";
-import { detectLocale, t as translate } from "./i18n";
+import { detectLocale, detectLocaleFromApp, t as translate } from "./i18n";
 import { CandidateModal } from "./candidate-modal";
 import { DryRunModal } from "./dry-run-modal";
 import { AttachmentImagebedSettingTab } from "./settings-tab";
@@ -38,16 +38,11 @@ export default class AttachmentImagebedManagerPlugin extends Plugin {
 
   async onload(): Promise<void> {
     await this.loadSettings();
-    this.locale = detectLocale();
-    this.isMobile =
-      typeof this.app.isMobile === "function"
-        ? this.app.isMobile()
-        : typeof (this.app as any).platform === "string"
-        ? (this.app as any).platform === "mobile"
-        : /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    this.locale = detectLocaleFromApp(getLanguage);
+    this.isMobile = Platform.isMobile;
 
     this.addRibbonIcon("upload-cloud", this.t("ribbonScan"), () => {
-      this.scanCurrentNote();
+      void this.scanCurrentNote();
     });
 
     this.addCommand({
@@ -87,17 +82,17 @@ export default class AttachmentImagebedManagerPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const loaded = await this.loadData();
+    const loaded = await this.loadData() as Record<string, unknown> | null;
     this.settings = mergeSettings(DEFAULT_SETTINGS, loaded || {});
   }
 
   async saveSettings(): Promise<void> {
-    const toSave: Record<string, any> = { ...this.settings };
+    const toSave: Record<string, unknown> = { ...this.settings };
     toSave.logs = this.settings.logs.slice(0, 50);
     await this.saveData(toSave);
   }
 
-  t(key: string, params: Record<string, any> = {}): string {
+  t(key: string, params: Record<string, unknown> = {}): string {
     return translate(this.locale, key, params);
   }
 
@@ -110,7 +105,7 @@ export default class AttachmentImagebedManagerPlugin extends Plugin {
     this.autoScanTimer = window.setInterval(() => {
       this.runAutoScan().catch((error) => {
         console.error("Auto scan failed", error);
-        new Notice(this.t("autoScanFailed", { error: error.message || error }));
+        new Notice(this.t("autoScanFailed", { error: error instanceof Error ? error.message : String(error) }));
       });
     }, minutes * 60 * 1000);
   }
@@ -127,8 +122,8 @@ export default class AttachmentImagebedManagerPlugin extends Plugin {
     }
     try {
       this.ensureS3Settings();
-    } catch (error: any) {
-      new Notice(error.message);
+    } catch (error: unknown) {
+      new Notice(error instanceof Error ? error.message : String(error));
       return;
     }
     const candidates = await this.findCandidatesInNote(activeFile, {
@@ -176,8 +171,7 @@ export default class AttachmentImagebedManagerPlugin extends Plugin {
     if (!this.settings.enabled || !this.settings.autoScanEnabled) return;
     try {
       this.ensureS3Settings();
-    } catch (error) {
-      return;
+    } catch (_error) {
     }
     const minBytes = Math.max(0, Number(this.settings.autoScanMinSizeMiB) || 0) * 1024 * 1024;
     const files = this.app.vault.getMarkdownFiles();
@@ -507,7 +501,7 @@ export default class AttachmentImagebedManagerPlugin extends Plugin {
         });
         continue;
       }
-      await this.app.vault.trash(file, true);
+      await this.app.fileManager.trashFile(file);
       this.addLog({
         status,
         notePath: noteFile.path,

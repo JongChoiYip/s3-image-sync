@@ -1,4 +1,4 @@
-import { PluginSettings, S3Config, ReplacementType } from "./types";
+import { PluginSettings, S3Config, ReplacementType, PendingDelete, LogEntry } from "./types";
 import { FILE_CATEGORIES } from "./file-categories";
 
 const DEFAULT_S3: S3Config = {
@@ -62,7 +62,34 @@ interface OldRule {
 interface OldLoadedSettings {
   r2?: Partial<S3Config>;
   rules?: OldRule[];
-  [key: string]: any;
+  s3?: Partial<S3Config>;
+  provider?: string;
+  region?: string;
+  enabledExtensions?: string[];
+  minSizeRules?: Record<string, number>;
+  autoCandidateExts?: string[];
+  customExtensions?: string[];
+  customReplacements?: Record<string, ReplacementType>;
+  pendingDeletes?: PendingDelete[];
+  logs?: LogEntry[];
+}
+
+interface LoadedSettings {
+  r2?: Partial<S3Config>;
+  s3?: Partial<S3Config>;
+  provider?: string;
+  region?: string;
+  enabledExtensions?: string[];
+  minSizeRules?: Record<string, number>;
+  autoCandidateExts?: string[];
+  customExtensions?: string[];
+  customReplacements?: Record<string, ReplacementType>;
+  pendingDeletes?: PendingDelete[];
+  logs?: LogEntry[];
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function migrateOldSettings(loaded: OldLoadedSettings): Partial<PluginSettings> {
@@ -107,29 +134,28 @@ function migrateOldSettings(loaded: OldLoadedSettings): Partial<PluginSettings> 
   return result;
 }
 
-export function mergeSettings(defaults: PluginSettings, loaded: any): PluginSettings {
-  const migrated = migrateOldSettings(loaded || {});
+export function mergeSettings(defaults: PluginSettings, loaded: unknown): PluginSettings {
+  const data: LoadedSettings = isObject(loaded) ? loaded as LoadedSettings : {};
+  const migrated = migrateOldSettings(data);
 
-  const s3Data = loaded?.s3 || migrated.s3 || loaded?.r2 || {};
+  const s3Data = data.s3 || migrated.s3 || data.r2 || {};
   const s3: S3Config = {
     ...defaults.s3,
     ...s3Data,
-    provider: s3Data.provider || (loaded?.r2 ? "r2" : "r2"),
-    region: s3Data.region || (s3Data.provider === "r2" || loaded?.r2 ? "auto" : "us-east-1"),
+    provider: s3Data.provider || (data.r2 ? "r2" : "r2"),
+    region: s3Data.region || (s3Data.provider === "r2" || data.r2 ? "auto" : "us-east-1"),
   };
 
   return {
     ...defaults,
-    ...loaded,
-    ...migrated,
     s3,
-    enabledExtensions: migrated.enabledExtensions || loaded?.enabledExtensions || defaults.enabledExtensions,
-    minSizeRules: migrated.minSizeRules || loaded?.minSizeRules || defaults.minSizeRules,
-    autoCandidateExts: migrated.autoCandidateExts || loaded?.autoCandidateExts || defaults.autoCandidateExts,
-    customExtensions: loaded?.customExtensions || defaults.customExtensions,
-    customReplacements: migrated.customReplacements || loaded?.customReplacements || defaults.customReplacements,
-    pendingDeletes: Array.isArray(loaded?.pendingDeletes) ? loaded.pendingDeletes : [],
-    logs: Array.isArray(loaded?.logs) ? loaded.logs.slice(0, 100) : [],
+    enabledExtensions: migrated.enabledExtensions || data.enabledExtensions || defaults.enabledExtensions,
+    minSizeRules: migrated.minSizeRules || data.minSizeRules || defaults.minSizeRules,
+    autoCandidateExts: migrated.autoCandidateExts || data.autoCandidateExts || defaults.autoCandidateExts,
+    customExtensions: data.customExtensions || defaults.customExtensions,
+    customReplacements: migrated.customReplacements || data.customReplacements || defaults.customReplacements,
+    pendingDeletes: Array.isArray(data.pendingDeletes) ? data.pendingDeletes : [],
+    logs: Array.isArray(data.logs) ? data.logs.slice(0, 100) : [],
   };
 }
 
