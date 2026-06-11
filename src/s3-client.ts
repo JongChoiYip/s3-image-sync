@@ -93,7 +93,7 @@ export async function putS3Object(
       }
 
       throw new Error(formatError(response.status, response.text || ""));
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof Error && error.message) {
         // Already a formatted error from above — don't retry non-retriable errors
         if (attempt >= MAX_RETRIES) throw error;

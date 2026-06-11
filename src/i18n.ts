@@ -290,26 +290,12 @@ export const I18N: Record<string, Record<string, string>> = {
   },
 };
 
-export function detectLocale(): string {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-  const momentLocale = typeof (window as any).moment?.locale === "function"
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    ? (window as any).moment.locale() as string
-    : "";
-  let language = momentLocale;
-  if (!language && typeof navigator !== "undefined") {
-    language = navigator.language || "";
-  }
-  return String(language).toLowerCase().startsWith("zh") ? "zh" : "en";
-}
-
 export function detectLocaleFromApp(getLanguage: () => string): string {
   const lang = getLanguage();
-  if (lang) return String(lang).toLowerCase().startsWith("zh") ? "zh" : "en";
-  return detectLocale();
+  return String(lang).toLowerCase().startsWith("zh") ? "zh" : "en";
 }
 
-export function t(locale: string, key: string, params: Record<string, any> = {}): string {
+export function t(locale: string, key: string, params: Record<string, unknown> = {}): string {
   const pack = I18N[locale] || I18N.en;
   const template = pack[key] || I18N.en[key] || key;
   return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));

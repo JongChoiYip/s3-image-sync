@@ -25,7 +25,7 @@ import {
   safeFilename,
   trimSlashes,
 } from "./utils";
-import { detectLocale, detectLocaleFromApp, t as translate } from "./i18n";
+import { detectLocaleFromApp, t as translate } from "./i18n";
 import { CandidateModal } from "./candidate-modal";
 import { DryRunModal } from "./dry-run-modal";
 import { AttachmentImagebedSettingTab } from "./settings-tab";

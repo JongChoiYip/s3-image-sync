@@ -835,19 +835,9 @@ var I18N = {
     noLogs: "\u6682\u65E0\u6D3B\u52A8\u8BB0\u5F55\u3002\u626B\u63CF\u4E00\u7BC7\u6587\u6863\u5373\u53EF\u5F00\u59CB\u3002"
   }
 };
-function detectLocale() {
-  const momentLocale = typeof window.moment?.locale === "function" ? window.moment.locale() : "";
-  let language = momentLocale;
-  if (!language && typeof navigator !== "undefined") {
-    language = navigator.language || "";
-  }
-  return String(language).toLowerCase().startsWith("zh") ? "zh" : "en";
-}
 function detectLocaleFromApp(getLanguage2) {
   const lang = getLanguage2();
-  if (lang)
-    return String(lang).toLowerCase().startsWith("zh") ? "zh" : "en";
-  return detectLocale();
+  return String(lang).toLowerCase().startsWith("zh") ? "zh" : "en";
 }
 function t(locale, key, params = {}) {
   const pack = I18N[locale] || I18N.en;
