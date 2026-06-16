@@ -559,32 +559,32 @@ async function testS3Connection(config) {
 var I18N = {
   en: {
     // Ribbon & Commands
-    ribbonScan: "Scan current note attachments",
-    commandScanCurrent: "Scan current note attachments",
-    commandScanVault: "Scan vault candidates without replacing",
-    commandProcessDeletes: "Process delayed attachment deletes",
+    ribbonScan: "Scan current note images",
+    commandScanCurrent: "Scan current note images",
+    commandScanVault: "Scan vault images without replacing",
+    commandProcessDeletes: "Process delayed image deletes",
     // Notices
-    disabled: "Attachment Imagebed Manager is disabled.",
+    disabled: "S3 Image Sync is disabled.",
     openMarkdownFirst: "Open a Markdown note first.",
-    noCandidates: "No eligible local attachments found in this note.",
-    autoScanFailed: "Attachment auto scan failed: {error}",
-    delayedDeleteFailed: "Attachment Imagebed Manager delayed delete failed",
-    autoScanReplaced: "Attachment auto scan replaced {count} link(s).",
+    noCandidates: "No eligible local images found in this note.",
+    autoScanFailed: "Image auto scan failed: {error}",
+    delayedDeleteFailed: "S3 Image Sync delayed delete failed",
+    autoScanReplaced: "Image auto scan replaced {count} link(s).",
     noteChanged: "Note changed during upload; skipped replacement.",
     originalLinkChanged: "Original link changed before write: {link}",
     missingS3: "Missing S3 settings: {settings}",
     uploadFailed: "S3 upload failed ({status}): {text}",
     // Candidate Modal
-    replaceTitle: "Replace note attachments",
-    candidateSummary: "Found {count} local attachment(s) in this note that can be uploaded.",
+    replaceTitle: "Replace note images",
+    candidateSummary: "Found {count} local image(s) in this note that can be uploaded.",
     referenceCount: "{count} ref(s)",
     cancel: "Cancel",
     uploadReplace: "Upload & Replace",
-    noSelected: "No attachment selected.",
+    noSelected: "No image selected.",
     replacedNotice: "Replaced {count} link(s) successfully!",
-    replaceFailed: "Attachment replacement failed: {error}",
-    uploadingTitle: "Uploading attachments",
-    preparing: "Preparing {count} selected attachment(s)...",
+    replaceFailed: "Image replacement failed: {error}",
+    uploadingTitle: "Uploading images",
+    preparing: "Preparing {count} selected image(s)...",
     starting: "Starting...",
     phaseUploading: "Uploading",
     phaseUploaded: "Uploaded",
@@ -606,10 +606,10 @@ var I18N = {
     selectAll: "Select all",
     // Dry Run Modal
     vaultScanTitle: "Vault scan result",
-    vaultScanFound: "Found {count} attachment(s) that would be auto-uploaded.",
+    vaultScanFound: "Found {count} image(s) that would be auto-uploaded.",
     scanningVault: "Scanning vault... ({current}/{total})",
     // Settings - Status
-    settingsTitle: "Attachment Imagebed Manager",
+    settingsTitle: "S3 Image Sync",
     setupComplete: "S3 storage is configured and ready to use.",
     setupIncomplete: "S3 storage is not configured yet. Fill in the settings below to get started.",
     // Settings - S3
@@ -644,7 +644,7 @@ var I18N = {
     pluginEnabled: "Enable plugin",
     pluginEnabledDesc: "Turn on/off the scanning and replacement features.",
     mobileHint: "Note: Scheduled auto-scan and delayed delete are disabled on mobile devices. Manual upload and replacement work normally.",
-    attachmentRoot: "Attachment folder",
+    attachmentRoot: "Image folder",
     attachmentRootDesc: "Only files under this folder will be processed. Default: 99 Attachments",
     deletePolicy: "After replacing links, delete local files?",
     deletePolicyDesc: "Choose what happens to the original local files after they are replaced with remote URLs.",
@@ -654,7 +654,7 @@ var I18N = {
     deleteDelayHours: "Delay before delete (hours)",
     deleteDelayHoursDesc: "Files will be moved to trash after this many hours.",
     automaticScan: "Auto-scan vault periodically",
-    automaticScanDesc: "Automatically find and replace eligible attachments in the background.",
+    automaticScanDesc: "Automatically find and replace eligible images in the background.",
     scanInterval: "Scan interval (minutes)",
     scanIntervalDesc: "How often to scan the vault. Default: 30",
     quietSeconds: "Skip recently modified files (seconds)",
@@ -692,32 +692,32 @@ var I18N = {
   },
   zh: {
     // Ribbon & Commands
-    ribbonScan: "\u626B\u63CF\u5F53\u524D\u6587\u6863\u9644\u4EF6",
-    commandScanCurrent: "\u626B\u63CF\u5F53\u524D\u6587\u6863\u9644\u4EF6",
-    commandScanVault: "\u626B\u63CF\u5168\u5E93\u5019\u9009\u4F46\u4E0D\u66FF\u6362",
-    commandProcessDeletes: "\u5904\u7406\u5EF6\u8FDF\u5220\u9664\u9644\u4EF6",
+    ribbonScan: "\u626B\u63CF\u5F53\u524D\u6587\u6863\u56FE\u7247",
+    commandScanCurrent: "\u626B\u63CF\u5F53\u524D\u6587\u6863\u56FE\u7247",
+    commandScanVault: "\u626B\u63CF\u5168\u5E93\u56FE\u7247\u4F46\u4E0D\u66FF\u6362",
+    commandProcessDeletes: "\u5904\u7406\u5EF6\u8FDF\u5220\u9664\u56FE\u7247",
     // Notices
-    disabled: "\u9644\u4EF6\u56FE\u5E8A\u7BA1\u7406\u5668\u5DF2\u505C\u7528\u3002",
+    disabled: "S3 \u56FE\u7247\u540C\u6B65\u5DF2\u505C\u7528\u3002",
     openMarkdownFirst: "\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A Markdown \u6587\u6863\u3002",
-    noCandidates: "\u5F53\u524D\u6587\u6863\u6CA1\u6709\u53EF\u4E0A\u4F20\u66FF\u6362\u7684\u672C\u5730\u9644\u4EF6\u3002",
-    autoScanFailed: "\u9644\u4EF6\u81EA\u52A8\u626B\u63CF\u5931\u8D25\uFF1A{error}",
-    delayedDeleteFailed: "\u9644\u4EF6\u56FE\u5E8A\u7BA1\u7406\u5668\u5EF6\u8FDF\u5220\u9664\u5931\u8D25",
-    autoScanReplaced: "\u9644\u4EF6\u81EA\u52A8\u626B\u63CF\u5DF2\u66FF\u6362 {count} \u4E2A\u94FE\u63A5\u3002",
+    noCandidates: "\u5F53\u524D\u6587\u6863\u6CA1\u6709\u53EF\u4E0A\u4F20\u66FF\u6362\u7684\u672C\u5730\u56FE\u7247\u3002",
+    autoScanFailed: "\u56FE\u7247\u81EA\u52A8\u626B\u63CF\u5931\u8D25\uFF1A{error}",
+    delayedDeleteFailed: "S3 \u56FE\u7247\u540C\u6B65\u5EF6\u8FDF\u5220\u9664\u5931\u8D25",
+    autoScanReplaced: "\u56FE\u7247\u81EA\u52A8\u626B\u63CF\u5DF2\u66FF\u6362 {count} \u4E2A\u94FE\u63A5\u3002",
     noteChanged: "\u4E0A\u4F20\u671F\u95F4\u6587\u6863\u53D1\u751F\u53D8\u5316\uFF0C\u5DF2\u8DF3\u8FC7\u66FF\u6362\u3002",
     originalLinkChanged: "\u539F\u59CB\u94FE\u63A5\u5728\u5199\u5165\u524D\u53D1\u751F\u53D8\u5316\uFF1A{link}",
     missingS3: "\u7F3A\u5C11 S3 \u914D\u7F6E\uFF1A{settings}",
     uploadFailed: "S3 \u4E0A\u4F20\u5931\u8D25\uFF08{status}\uFF09\uFF1A{text}",
     // Candidate Modal
-    replaceTitle: "\u66FF\u6362\u6587\u6863\u9644\u4EF6",
-    candidateSummary: "\u5728\u5F53\u524D\u6587\u6863\u4E2D\u627E\u5230 {count} \u4E2A\u53EF\u4E0A\u4F20\u66FF\u6362\u7684\u672C\u5730\u9644\u4EF6\u3002",
+    replaceTitle: "\u66FF\u6362\u6587\u6863\u56FE\u7247",
+    candidateSummary: "\u5728\u5F53\u524D\u6587\u6863\u4E2D\u627E\u5230 {count} \u4E2A\u53EF\u4E0A\u4F20\u66FF\u6362\u7684\u672C\u5730\u56FE\u7247\u3002",
     referenceCount: "{count} \u5904\u5F15\u7528",
     cancel: "\u53D6\u6D88",
     uploadReplace: "\u4E0A\u4F20\u5E76\u66FF\u6362",
-    noSelected: "\u6CA1\u6709\u9009\u62E9\u9644\u4EF6\u3002",
+    noSelected: "\u6CA1\u6709\u9009\u62E9\u56FE\u7247\u3002",
     replacedNotice: "\u5DF2\u6210\u529F\u66FF\u6362 {count} \u4E2A\u94FE\u63A5\uFF01",
-    replaceFailed: "\u9644\u4EF6\u66FF\u6362\u5931\u8D25\uFF1A{error}",
-    uploadingTitle: "\u6B63\u5728\u4E0A\u4F20\u9644\u4EF6",
-    preparing: "\u51C6\u5907\u4E0A\u4F20 {count} \u4E2A\u5DF2\u9009\u62E9\u9644\u4EF6...",
+    replaceFailed: "\u56FE\u7247\u66FF\u6362\u5931\u8D25\uFF1A{error}",
+    uploadingTitle: "\u6B63\u5728\u4E0A\u4F20\u56FE\u7247",
+    preparing: "\u51C6\u5907\u4E0A\u4F20 {count} \u4E2A\u5DF2\u9009\u62E9\u56FE\u7247...",
     starting: "\u6B63\u5728\u5F00\u59CB...",
     phaseUploading: "\u6B63\u5728\u4E0A\u4F20",
     phaseUploaded: "\u5DF2\u4E0A\u4F20",
@@ -739,15 +739,15 @@ var I18N = {
     selectAll: "\u5168\u9009",
     // Dry Run Modal
     vaultScanTitle: "\u5168\u5E93\u626B\u63CF\u7ED3\u679C",
-    vaultScanFound: "\u627E\u5230 {count} \u4E2A\u53EF\u81EA\u52A8\u4E0A\u4F20\u7684\u9644\u4EF6\u3002",
+    vaultScanFound: "\u627E\u5230 {count} \u4E2A\u53EF\u81EA\u52A8\u4E0A\u4F20\u7684\u56FE\u7247\u3002",
     scanningVault: "\u6B63\u5728\u626B\u63CF\u5168\u5E93...\uFF08{current}/{total}\uFF09",
     // Settings - Status
-    settingsTitle: "\u9644\u4EF6\u56FE\u5E8A\u7BA1\u7406\u5668",
+    settingsTitle: "S3 \u56FE\u7247\u540C\u6B65",
     setupComplete: "S3 \u5B58\u50A8\u5DF2\u914D\u7F6E\uFF0C\u53EF\u4EE5\u6B63\u5E38\u4F7F\u7528\u3002",
     setupIncomplete: "S3 \u5B58\u50A8\u5C1A\u672A\u914D\u7F6E\uFF0C\u8BF7\u5148\u586B\u5199\u4E0B\u65B9\u8BBE\u7F6E\u3002",
     // Settings - S3
     s3Storage: "\u7B2C\u4E00\u6B65\uFF1A\u8FDE\u63A5\u4E91\u5B58\u50A8",
-    s3SetupGuide: "\u9009\u62E9\u5B58\u50A8\u670D\u52A1\u5546\u5E76\u586B\u5199\u51ED\u636E\u3002\u9644\u4EF6\u5C06\u4E0A\u4F20\u5230\u8FD9\u91CC\uFF0C\u5E76\u901A\u8FC7\u516C\u5F00\u57DF\u540D\u8BBF\u95EE\u3002",
+    s3SetupGuide: "\u9009\u62E9\u5B58\u50A8\u670D\u52A1\u5546\u5E76\u586B\u5199\u51ED\u636E\u3002\u56FE\u7247\u5C06\u4E0A\u4F20\u5230\u8FD9\u91CC\uFF0C\u5E76\u901A\u8FC7\u516C\u5F00\u57DF\u540D\u8BBF\u95EE\u3002",
     provider: "\u5B58\u50A8\u670D\u52A1\u5546",
     providerDesc: "\u63A8\u8350\u4F7F\u7528 Cloudflare R2 \u2014 \u514D\u8D39\u51FA\u7AD9\u6D41\u91CF\uFF0C\u514D\u8D39\u989D\u5EA6\u5145\u8DB3\u3002",
     region: "\u533A\u57DF",
@@ -777,8 +777,8 @@ var I18N = {
     pluginEnabled: "\u542F\u7528\u63D2\u4EF6",
     pluginEnabledDesc: "\u5F00\u542F\u6216\u5173\u95ED\u626B\u63CF\u548C\u66FF\u6362\u529F\u80FD\u3002",
     mobileHint: "\u63D0\u793A\uFF1A\u79FB\u52A8\u7AEF\u4E0D\u652F\u6301\u5B9A\u65F6\u81EA\u52A8\u626B\u63CF\u548C\u5EF6\u8FDF\u5220\u9664\u3002\u624B\u52A8\u4E0A\u4F20\u548C\u66FF\u6362\u529F\u80FD\u6B63\u5E38\u4F7F\u7528\u3002",
-    attachmentRoot: "\u9644\u4EF6\u6587\u4EF6\u5939",
-    attachmentRootDesc: "\u53EA\u5904\u7406\u6B64\u6587\u4EF6\u5939\u4E0B\u7684\u6587\u4EF6\u3002\u9ED8\u8BA4\uFF1A99 Attachments",
+    attachmentRoot: "\u56FE\u7247\u6587\u4EF6\u5939",
+    attachmentRootDesc: "\u53EA\u5904\u7406\u6B64\u6587\u4EF6\u5939\u4E0B\u7684\u56FE\u7247\u3002\u9ED8\u8BA4\uFF1A99 Attachments",
     deletePolicy: "\u66FF\u6362\u94FE\u63A5\u540E\uFF0C\u662F\u5426\u5220\u9664\u672C\u5730\u6587\u4EF6\uFF1F",
     deletePolicyDesc: "\u9009\u62E9\u66FF\u6362\u4E3A\u8FDC\u7A0B\u94FE\u63A5\u540E\uFF0C\u539F\u672C\u5730\u6587\u4EF6\u7684\u5904\u7406\u65B9\u5F0F\u3002",
     deleteConfirm: "\u6BCF\u6B21\u8BE2\u95EE\u6211\uFF08\u63A8\u8350\uFF09",
@@ -787,28 +787,28 @@ var I18N = {
     deleteDelayHours: "\u5EF6\u8FDF\u5220\u9664\u65F6\u95F4\uFF08\u5C0F\u65F6\uFF09",
     deleteDelayHoursDesc: "\u6587\u4EF6\u5C06\u5728\u6307\u5B9A\u5C0F\u65F6\u540E\u79FB\u5165\u56DE\u6536\u7AD9\u3002",
     automaticScan: "\u5B9A\u671F\u81EA\u52A8\u626B\u63CF\u5168\u5E93",
-    automaticScanDesc: "\u81EA\u52A8\u5728\u540E\u53F0\u67E5\u627E\u5E76\u66FF\u6362\u7B26\u5408\u6761\u4EF6\u7684\u9644\u4EF6\u3002",
+    automaticScanDesc: "\u81EA\u52A8\u5728\u540E\u53F0\u67E5\u627E\u5E76\u66FF\u6362\u7B26\u5408\u6761\u4EF6\u7684\u56FE\u7247\u3002",
     scanInterval: "\u626B\u63CF\u95F4\u9694\uFF08\u5206\u949F\uFF09",
     scanIntervalDesc: "\u591A\u4E45\u626B\u63CF\u4E00\u6B21\u5168\u5E93\u3002\u9ED8\u8BA4\uFF1A30",
     quietSeconds: "\u8DF3\u8FC7\u6700\u8FD1\u4FEE\u6539\u7684\u6587\u4EF6\uFF08\u79D2\uFF09",
     quietSecondsDesc: "\u5728\u6B64\u65F6\u95F4\u5185\u4FEE\u6539\u8FC7\u7684\u6587\u4EF6\u4F1A\u88AB\u81EA\u52A8\u626B\u63CF\u8DF3\u8FC7\u3002\u9ED8\u8BA4\uFF1A600\uFF0810 \u5206\u949F\uFF09",
-    autoScanMinSize: "\u81EA\u52A8\u626B\u63CF\u5FFD\u7565\u5C0F\u4E8E\u6B64\u5927\u5C0F\u7684\u6587\u4EF6\uFF08MiB\uFF09",
-    autoScanMinSizeDesc: "\u4EC5\u5BF9\u81EA\u52A8\u626B\u63CF\u751F\u6548\uFF0C\u624B\u52A8\u626B\u63CF\u4E0D\u53D7\u5F71\u54CD\u3002\u8BBE\u4E3A 0 \u8868\u793A\u4E0A\u4F20\u6240\u6709\u6587\u4EF6\u3002",
+    autoScanMinSize: "\u81EA\u52A8\u626B\u63CF\u5FFD\u7565\u5C0F\u4E8E\u6B64\u5927\u5C0F\u7684\u56FE\u7247\uFF08MiB\uFF09",
+    autoScanMinSizeDesc: "\u4EC5\u5BF9\u81EA\u52A8\u626B\u63CF\u751F\u6548\uFF0C\u624B\u52A8\u626B\u63CF\u4E0D\u53D7\u5F71\u54CD\u3002\u8BBE\u4E3A 0 \u8868\u793A\u4E0A\u4F20\u6240\u6709\u56FE\u7247\u3002",
     // Settings - File Types
-    fileTypes: "\u7B2C\u4E09\u6B65\uFF1A\u9009\u62E9\u8981\u4E0A\u4F20\u7684\u6587\u4EF6\u7C7B\u578B",
-    fileTypesDesc: "\u70B9\u51FB\u6587\u4EF6\u7C7B\u578B\u6765\u5207\u6362\u3002\u9009\u4E2D\u7684\u7C7B\u578B\u5728\u626B\u63CF\u65F6\u4F1A\u88AB\u4E0A\u4F20\u3002",
+    fileTypes: "\u7B2C\u4E09\u6B65\uFF1A\u9009\u62E9\u8981\u4E0A\u4F20\u7684\u56FE\u7247\u7C7B\u578B",
+    fileTypesDesc: "\u70B9\u51FB\u56FE\u7247\u7C7B\u578B\u6765\u5207\u6362\u3002\u9009\u4E2D\u7684\u7C7B\u578B\u5728\u626B\u63CF\u65F6\u4F1A\u88AB\u4E0A\u4F20\u3002",
     extCount: "{enabled}/{total} \u5DF2\u542F\u7528",
     categoryImage: "\u56FE\u7247",
     categoryVideo: "\u89C6\u9891",
     categoryAudio: "\u97F3\u9891",
     categoryDocument: "\u6587\u6863",
     deselectAll: "\u53D6\u6D88\u5168\u9009",
-    customExtensions: "\u81EA\u5B9A\u4E49\u6587\u4EF6\u7C7B\u578B",
+    customExtensions: "\u81EA\u5B9A\u4E49\u56FE\u7247\u7C7B\u578B",
     customExtPlaceholder: "\u4F8B\u5982 sketch\u3001fig\u3001psd",
     addExtension: "\u6DFB\u52A0",
     removeExtension: "\u79FB\u9664",
     minSizeSection: "\u6700\u5C0F\u6587\u4EF6\u5927\u5C0F\u8FC7\u6EE4\uFF08\u9AD8\u7EA7\uFF09",
-    minSizeSectionDesc: "\u53EA\u4E0A\u4F20\u5927\u4E8E\u6307\u5B9A\u5927\u5C0F\u7684\u6587\u4EF6\u3002\u8BBE\u4E3A 0 \u8868\u793A\u4E0A\u4F20\u6240\u6709\u6587\u4EF6\u3002",
+    minSizeSectionDesc: "\u53EA\u4E0A\u4F20\u5927\u4E8E\u6307\u5B9A\u5927\u5C0F\u7684\u56FE\u7247\u3002\u8BBE\u4E3A 0 \u8868\u793A\u4E0A\u4F20\u6240\u6709\u56FE\u7247\u3002",
     minSizeMiB: "\u6700\u5C0F\u5927\u5C0F (MiB)",
     autoCandidate: "\u5B9A\u65F6\u626B\u63CF\u5305\u542B",
     autoScanShort: "\u5B9A\u65F6",
@@ -841,7 +841,10 @@ var CandidateModal = class extends import_obsidian2.Modal {
   noteFile;
   candidates;
   selected;
-  progressBar = null;
+  // UI Elements for efficient updates
+  selectAllCb = null;
+  cardMap = /* @__PURE__ */ new Map();
+  progressFill = null;
   progressText = null;
   constructor(app, plugin, noteFile, candidates) {
     super(app);
@@ -852,56 +855,32 @@ var CandidateModal = class extends import_obsidian2.Modal {
   }
   onOpen() {
     this.modalEl.addClass("attachment-imagebed-manager-modal");
-    this.renderContent();
+    this.renderGalleryView();
   }
-  renderContent() {
+  renderGalleryView() {
     const { contentEl } = this;
     contentEl.empty();
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
     const t2 = this.plugin.t.bind(this.plugin);
-    new import_obsidian2.Setting(contentEl).setName(t2("replaceTitle")).setHeading();
-    contentEl.createEl("p", {
+    const header = container.createDiv({ cls: "attachment-imagebed-manager-header" });
+    header.createEl("h2", { text: t2("replaceTitle") });
+    header.createEl("p", {
       text: t2("candidateSummary", { path: this.noteFile.path, count: this.candidates.length }),
       cls: "attachment-imagebed-manager-summary"
     });
-    this.renderGalleryView(contentEl, this.candidates);
-    const bottomBar = contentEl.createDiv({ cls: "attachment-imagebed-manager-bottom-bar" });
-    const selectAllLabel = bottomBar.createEl("label", { cls: "attachment-imagebed-manager-select-all" });
-    const selectAllCb = selectAllLabel.createEl("input", { type: "checkbox" });
-    selectAllCb.checked = this.candidates.length > 0 && this.candidates.every((c) => this.selected.has(c.file.path));
-    selectAllCb.addEventListener("change", () => {
-      if (selectAllCb.checked) {
-        for (const c of this.candidates)
-          this.selected.add(c.file.path);
-      } else {
-        this.selected.clear();
-      }
-      this.renderContent();
-    });
-    selectAllLabel.createSpan({ text: t2("selectAll") });
-    const actions = bottomBar.createDiv({ cls: "attachment-imagebed-manager-actions" });
-    new import_obsidian2.Setting(actions).addButton(
-      (button) => button.setButtonText(t2("cancel")).onClick(() => this.close())
-    ).addButton(
-      (button) => button.setButtonText(t2("uploadReplace")).setCta().onClick(() => this.replaceSelected())
-    );
-  }
-  renderGalleryView(containerEl, candidates) {
-    const gallery = containerEl.createDiv({ cls: "attachment-imagebed-manager-gallery" });
-    for (const candidate of candidates) {
+    const galleryContainer = container.createDiv({ cls: "attachment-imagebed-manager-gallery-container" });
+    const gallery = galleryContainer.createDiv({ cls: "attachment-imagebed-manager-gallery" });
+    this.cardMap.clear();
+    for (const candidate of this.candidates) {
+      const path = candidate.file.path;
       const card = gallery.createDiv({ cls: "attachment-imagebed-manager-gallery-card" });
-      card.addEventListener("click", (e) => {
-        if (e.target instanceof HTMLInputElement && e.target.type === "checkbox") {
-          return;
-        }
-        const path = candidate.file.path;
-        if (this.selected.has(path)) {
-          this.selected.delete(path);
-        } else {
-          this.selected.add(path);
-        }
-        this.renderContent();
-      });
+      if (this.selected.has(path)) {
+        card.addClass("is-selected");
+      }
+      this.cardMap.set(path, card);
       const previewArea = card.createDiv({ cls: "attachment-imagebed-manager-gallery-preview" });
+      const checkIcon = previewArea.createDiv({ cls: "attachment-imagebed-manager-gallery-check" });
+      checkIcon.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`;
       if (isPreviewableImage(candidate.file.extension)) {
         const image = previewArea.createEl("img");
         image.src = this.app.vault.getResourcePath(candidate.file);
@@ -912,21 +891,72 @@ var CandidateModal = class extends import_obsidian2.Modal {
         badge.textContent = candidate.file.extension.toUpperCase();
       }
       const info = card.createDiv({ cls: "attachment-imagebed-manager-gallery-info" });
-      const checkbox = info.createEl("input", { type: "checkbox" });
-      checkbox.checked = this.selected.has(candidate.file.path);
-      checkbox.addEventListener("change", () => {
-        if (checkbox.checked)
-          this.selected.add(candidate.file.path);
-        else
-          this.selected.delete(candidate.file.path);
-        this.renderContent();
+      info.createDiv({
+        text: candidate.file.name,
+        cls: "attachment-imagebed-manager-gallery-name",
+        title: candidate.file.name
       });
-      info.createDiv({ text: candidate.file.name, cls: "attachment-imagebed-manager-gallery-name" });
       info.createDiv({
         text: formatBytes(candidate.sizeBytes),
         cls: "attachment-imagebed-manager-gallery-size"
       });
+      card.addEventListener("click", () => {
+        this.toggleSelection(path);
+      });
     }
+    const bottomBar = container.createDiv({ cls: "attachment-imagebed-manager-bottom-bar" });
+    const selectAllLabel = bottomBar.createEl("label", { cls: "attachment-imagebed-manager-select-all" });
+    this.selectAllCb = selectAllLabel.createEl("input", { type: "checkbox" });
+    this.updateSelectAllCheckbox();
+    this.selectAllCb.addEventListener("change", (e) => {
+      const checked = e.target.checked;
+      if (checked) {
+        for (const c of this.candidates)
+          this.selected.add(c.file.path);
+      } else {
+        this.selected.clear();
+      }
+      this.updateAllCards();
+    });
+    selectAllLabel.createSpan({ text: t2("selectAll") });
+    const actions = bottomBar.createDiv({ cls: "attachment-imagebed-manager-actions" });
+    const cancelBtn = actions.createEl("button", { text: t2("cancel") });
+    cancelBtn.addEventListener("click", () => this.close());
+    const uploadBtn = actions.createEl("button", {
+      text: t2("uploadReplace"),
+      cls: "mod-cta"
+    });
+    uploadBtn.addEventListener("click", () => this.replaceSelected());
+  }
+  toggleSelection(path) {
+    if (this.selected.has(path)) {
+      this.selected.delete(path);
+    } else {
+      this.selected.add(path);
+    }
+    this.updateCard(path);
+    this.updateSelectAllCheckbox();
+  }
+  updateCard(path) {
+    const card = this.cardMap.get(path);
+    if (!card)
+      return;
+    if (this.selected.has(path)) {
+      card.addClass("is-selected");
+    } else {
+      card.removeClass("is-selected");
+    }
+  }
+  updateAllCards() {
+    for (const path of this.cardMap.keys()) {
+      this.updateCard(path);
+    }
+  }
+  updateSelectAllCheckbox() {
+    if (!this.selectAllCb)
+      return;
+    this.selectAllCb.checked = this.candidates.length > 0 && this.selected.size === this.candidates.length;
+    this.selectAllCb.indeterminate = this.selected.size > 0 && this.selected.size < this.candidates.length;
   }
   async replaceSelected() {
     const t2 = this.plugin.t.bind(this.plugin);
@@ -953,28 +983,28 @@ var CandidateModal = class extends import_obsidian2.Modal {
     const t2 = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    new import_obsidian2.Setting(contentEl).setName(t2("uploadingTitle")).setHeading();
-    contentEl.createEl("p", {
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
+    const view = container.createDiv({ cls: "attachment-imagebed-manager-progress-view" });
+    view.createEl("h2", { text: t2("uploadingTitle") });
+    view.createEl("p", {
       text: t2("preparing", { count: total }),
       cls: "attachment-imagebed-manager-summary"
     });
-    this.progressBar = contentEl.createEl("progress", {
-      cls: "attachment-imagebed-manager-progress"
-    });
-    this.progressBar.max = 100;
-    this.progressBar.value = 0;
-    this.progressText = contentEl.createDiv({
+    const barContainer = view.createDiv({ cls: "attachment-imagebed-manager-progress-bar-container" });
+    this.progressFill = barContainer.createDiv({ cls: "attachment-imagebed-manager-progress-fill" });
+    this.progressFill.style.width = "0%";
+    this.progressText = view.createDiv({
       text: t2("starting"),
-      cls: "attachment-imagebed-manager-meta"
+      cls: "attachment-imagebed-manager-progress-text"
     });
   }
   updateProgress(state) {
-    if (!this.progressBar || !this.progressText)
+    if (!this.progressFill || !this.progressText)
       return;
     const t2 = this.plugin.t.bind(this.plugin);
     const total = Math.max(1, state.total || 1);
     const value = Math.min(100, Math.round((state.current || 0) / total * 100));
-    this.progressBar.value = value;
+    this.progressFill.style.width = `${value}%`;
     const phaseMap = {
       uploading: t2("phaseUploading"),
       uploaded: t2("phaseUploaded"),
@@ -990,49 +1020,55 @@ var CandidateModal = class extends import_obsidian2.Modal {
     const t2 = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    new import_obsidian2.Setting(contentEl).setName(t2("linksReplacedTitle")).setHeading();
-    contentEl.createEl("p", {
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
+    const view = container.createDiv({ cls: "attachment-imagebed-manager-delete-view" });
+    view.createEl("h2", { text: t2("linksReplacedTitle") });
+    view.createEl("p", {
       text: t2("linksReplacedDesc"),
       cls: "attachment-imagebed-manager-summary"
     });
     if (localFiles.length) {
-      const list = contentEl.createDiv({ cls: "attachment-imagebed-manager-delete-list" });
+      const list = view.createDiv({ cls: "attachment-imagebed-manager-delete-list" });
       for (const fileRecord of localFiles) {
-        list.createDiv({
-          text: `${fileRecord.name} \xB7 ${fileRecord.path}`,
-          cls: "attachment-imagebed-manager-meta"
-        });
+        const item = list.createDiv({ cls: "attachment-imagebed-manager-delete-item" });
+        item.createDiv({ text: fileRecord.name });
+        item.createDiv({ text: fileRecord.path, cls: "attachment-imagebed-manager-delete-item-path" });
       }
     }
-    const actions = contentEl.createDiv({ cls: "attachment-imagebed-manager-actions" });
-    new import_obsidian2.Setting(actions).addButton(
-      (button) => button.setButtonText(t2("keepLocal")).onClick(() => this.close())
-    ).addButton(
-      (button) => button.setButtonText(t2("deleteLocal")).setWarning().onClick(async () => {
-        try {
-          await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
-          new import_obsidian2.Notice(t2("movedToTrash", { count: localFiles.length }));
-          this.close();
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          console.error("Attachment local delete failed", error);
-          new import_obsidian2.Notice(t2("localDeleteFailed", { error: message }), 1e4);
-          this.renderError(error instanceof Error ? error : new Error(message));
-        }
-      })
-    );
+    const actions = view.createDiv({ cls: "attachment-imagebed-manager-delete-actions" });
+    const keepBtn = actions.createEl("button", { text: t2("keepLocal") });
+    keepBtn.addEventListener("click", () => this.close());
+    const deleteBtn = actions.createEl("button", {
+      text: t2("deleteLocal"),
+      cls: "mod-warning"
+    });
+    deleteBtn.addEventListener("click", async () => {
+      try {
+        await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
+        new import_obsidian2.Notice(t2("movedToTrash", { count: localFiles.length }));
+        this.close();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Attachment local delete failed", error);
+        new import_obsidian2.Notice(t2("localDeleteFailed", { error: message }), 1e4);
+        this.renderError(error instanceof Error ? error : new Error(message));
+      }
+    });
   }
   renderError(error) {
     const t2 = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
-    contentEl.createEl("p", {
+    contentEl.empty();
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
+    const view = container.createDiv({ cls: "attachment-imagebed-manager-delete-view" });
+    view.createEl("h2", { text: "Error" });
+    view.createEl("p", {
       text: error.message || String(error),
       cls: "attachment-imagebed-manager-summary"
     });
-    const actions = contentEl.createDiv({ cls: "attachment-imagebed-manager-actions" });
-    new import_obsidian2.Setting(actions).addButton(
-      (button) => button.setButtonText(t2("close")).onClick(() => this.close())
-    );
+    const actions = view.createDiv({ cls: "attachment-imagebed-manager-delete-actions" });
+    const closeBtn = actions.createEl("button", { text: t2("close") });
+    closeBtn.addEventListener("click", () => this.close());
   }
 };
 
@@ -1071,7 +1107,7 @@ var CATEGORY_ICONS = {
   audio: "\u{1F3B5}",
   document: "\u{1F4C4}"
 };
-var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingTab {
+var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
   plugin;
   constructor(app, plugin) {
     super(app, plugin);
@@ -1450,7 +1486,7 @@ var AttachmentImagebedSettingTab = class extends import_obsidian4.PluginSettingT
 };
 
 // src/plugin.ts
-var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
+var S3ImageSyncPlugin = class extends import_obsidian5.Plugin {
   locale;
   autoScanTimer = null;
   isMobile = false;
@@ -1476,7 +1512,7 @@ var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
       name: this.t("commandProcessDeletes"),
       callback: () => this.processPendingDeletes()
     });
-    this.addSettingTab(new AttachmentImagebedSettingTab(this.app, this));
+    this.addSettingTab(new S3ImageSyncSettingTab(this.app, this));
     if (!this.isMobile) {
       await this.processPendingDeletes();
       this.registerInterval(
@@ -1957,4 +1993,4 @@ var AttachmentImagebedManagerPlugin = class extends import_obsidian5.Plugin {
 };
 
 // src/main.ts
-var main_default = AttachmentImagebedManagerPlugin;
+var main_default = S3ImageSyncPlugin;

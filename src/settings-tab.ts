@@ -1,5 +1,5 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
-import type AttachmentImagebedManagerPlugin from "./plugin";
+import type S3ImageSyncPlugin from "./plugin";
 import { FILE_CATEGORIES } from "./file-categories";
 import { FileCategory, DeletePolicy, S3Provider, S3Config } from "./types";
 import { debounce } from "./utils";
@@ -12,10 +12,10 @@ const CATEGORY_ICONS: Record<string, string> = {
   document: "\ud83d\udcc4",
 };
 
-export class AttachmentImagebedSettingTab extends PluginSettingTab {
-  plugin: AttachmentImagebedManagerPlugin;
+export class S3ImageSyncSettingTab extends PluginSettingTab {
+  plugin: S3ImageSyncPlugin;
 
-  constructor(app: App, plugin: AttachmentImagebedManagerPlugin) {
+  constructor(app: App, plugin: S3ImageSyncPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }

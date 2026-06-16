@@ -1,17 +1,21 @@
-import { App, Modal, Notice, Setting, TFile, activeDocument } from "obsidian";
-import type AttachmentImagebedManagerPlugin from "./plugin";
+import { App, Modal, Notice, TFile } from "obsidian";
+import type S3ImageSyncPlugin from "./plugin";
 import { Candidate, ProgressState, LocalFileRecord } from "./types";
 import { formatBytes, isPreviewableImage } from "./utils";
 
 export class CandidateModal extends Modal {
-  plugin: AttachmentImagebedManagerPlugin;
+  plugin: S3ImageSyncPlugin;
   noteFile: TFile;
   candidates: Candidate[];
   selected: Set<string>;
-  progressBar: HTMLProgressElement | null = null;
+  
+  // UI Elements for efficient updates
+  private selectAllCb: HTMLInputElement | null = null;
+  private cardMap: Map<string, HTMLElement> = new Map();
+  private progressFill: HTMLElement | null = null;
   progressText: HTMLElement | null = null;
 
-  constructor(app: App, plugin: AttachmentImagebedManagerPlugin, noteFile: TFile, candidates: Candidate[]) {
+  constructor(app: App, plugin: S3ImageSyncPlugin, noteFile: TFile, candidates: Candidate[]) {
     super(app);
     this.plugin = plugin;
     this.noteFile = noteFile;
@@ -21,70 +25,46 @@ export class CandidateModal extends Modal {
 
   onOpen(): void {
     this.modalEl.addClass("attachment-imagebed-manager-modal");
-    this.renderContent();
+    this.renderGalleryView();
   }
 
-  private renderContent(): void {
+  private renderGalleryView(): void {
     const { contentEl } = this;
     contentEl.empty();
+    
+    // Create modern modal wrapper structure
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
     const t = this.plugin.t.bind(this.plugin);
 
-    new Setting(contentEl).setName(t("replaceTitle")).setHeading();
-    contentEl.createEl("p", {
+    // 1. Header
+    const header = container.createDiv({ cls: "attachment-imagebed-manager-header" });
+    header.createEl("h2", { text: t("replaceTitle") });
+    header.createEl("p", {
       text: t("candidateSummary", { path: this.noteFile.path, count: this.candidates.length }),
       cls: "attachment-imagebed-manager-summary",
     });
 
-    // Directly render the gallery view into content element
-    this.renderGalleryView(contentEl, this.candidates);
-
-    // Bottom bar: select all + actions
-    const bottomBar = contentEl.createDiv({ cls: "attachment-imagebed-manager-bottom-bar" });
-    const selectAllLabel = bottomBar.createEl("label", { cls: "attachment-imagebed-manager-select-all" });
-    const selectAllCb = selectAllLabel.createEl("input", { type: "checkbox" });
+    // 2. Gallery Container
+    const galleryContainer = container.createDiv({ cls: "attachment-imagebed-manager-gallery-container" });
+    const gallery = galleryContainer.createDiv({ cls: "attachment-imagebed-manager-gallery" });
     
-    selectAllCb.checked = this.candidates.length > 0 && this.candidates.every((c) => this.selected.has(c.file.path));
-    selectAllCb.addEventListener("change", () => {
-      if (selectAllCb.checked) {
-        for (const c of this.candidates) this.selected.add(c.file.path);
-      } else {
-        this.selected.clear();
-      }
-      this.renderContent();
-    });
-    selectAllLabel.createSpan({ text: t("selectAll") });
+    this.cardMap.clear();
 
-    const actions = bottomBar.createDiv({ cls: "attachment-imagebed-manager-actions" });
-    new Setting(actions)
-      .addButton((button) =>
-        button.setButtonText(t("cancel")).onClick(() => this.close())
-      )
-      .addButton((button) =>
-        button.setButtonText(t("uploadReplace")).setCta().onClick(() => this.replaceSelected())
-      );
-  }
-
-  private renderGalleryView(containerEl: HTMLElement, candidates: Candidate[]): void {
-    const gallery = containerEl.createDiv({ cls: "attachment-imagebed-manager-gallery" });
-    for (const candidate of candidates) {
+    for (const candidate of this.candidates) {
+      const path = candidate.file.path;
       const card = gallery.createDiv({ cls: "attachment-imagebed-manager-gallery-card" });
+      if (this.selected.has(path)) {
+        card.addClass("is-selected");
+      }
+      this.cardMap.set(path, card);
 
-      // Click card to toggle selection
-      card.addEventListener("click", (e) => {
-        // Prevent trigger twice when clicking directly on checkbox
-        if (e.target instanceof HTMLInputElement && e.target.type === "checkbox") {
-          return;
-        }
-        const path = candidate.file.path;
-        if (this.selected.has(path)) {
-          this.selected.delete(path);
-        } else {
-          this.selected.add(path);
-        }
-        this.renderContent();
-      });
-
+      // Card Preview Area
       const previewArea = card.createDiv({ cls: "attachment-imagebed-manager-gallery-preview" });
+      
+      // Custom Checkbox Indicator overlay on top-left of image preview
+      const checkIcon = previewArea.createDiv({ cls: "attachment-imagebed-manager-gallery-check" });
+      checkIcon.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`;
+
       if (isPreviewableImage(candidate.file.extension)) {
         const image = previewArea.createEl("img");
         image.src = this.app.vault.getResourcePath(candidate.file);
@@ -95,20 +75,84 @@ export class CandidateModal extends Modal {
         badge.textContent = candidate.file.extension.toUpperCase();
       }
 
+      // Card Info Section
       const info = card.createDiv({ cls: "attachment-imagebed-manager-gallery-info" });
-      const checkbox = info.createEl("input", { type: "checkbox" });
-      checkbox.checked = this.selected.has(candidate.file.path);
-      checkbox.addEventListener("change", () => {
-        if (checkbox.checked) this.selected.add(candidate.file.path);
-        else this.selected.delete(candidate.file.path);
-        this.renderContent();
+      info.createDiv({ 
+        text: candidate.file.name, 
+        cls: "attachment-imagebed-manager-gallery-name", 
+        title: candidate.file.name 
       });
-      info.createDiv({ text: candidate.file.name, cls: "attachment-imagebed-manager-gallery-name" });
-      info.createDiv({
-        text: formatBytes(candidate.sizeBytes),
-        cls: "attachment-imagebed-manager-gallery-size",
+      info.createDiv({ 
+        text: formatBytes(candidate.sizeBytes), 
+        cls: "attachment-imagebed-manager-gallery-size" 
+      });
+
+      // Click event to toggle selection cleanly without page re-render
+      card.addEventListener("click", () => {
+        this.toggleSelection(path);
       });
     }
+
+    // 3. Bottom Bar
+    const bottomBar = container.createDiv({ cls: "attachment-imagebed-manager-bottom-bar" });
+    
+    const selectAllLabel = bottomBar.createEl("label", { cls: "attachment-imagebed-manager-select-all" });
+    this.selectAllCb = selectAllLabel.createEl("input", { type: "checkbox" });
+    this.updateSelectAllCheckbox();
+    
+    this.selectAllCb.addEventListener("change", (e) => {
+      const checked = (e.target as HTMLInputElement).checked;
+      if (checked) {
+        for (const c of this.candidates) this.selected.add(c.file.path);
+      } else {
+        this.selected.clear();
+      }
+      this.updateAllCards();
+    });
+    selectAllLabel.createSpan({ text: t("selectAll") });
+
+    const actions = bottomBar.createDiv({ cls: "attachment-imagebed-manager-actions" });
+    
+    const cancelBtn = actions.createEl("button", { text: t("cancel") });
+    cancelBtn.addEventListener("click", () => this.close());
+    
+    const uploadBtn = actions.createEl("button", { 
+      text: t("uploadReplace"), 
+      cls: "mod-cta" 
+    });
+    uploadBtn.addEventListener("click", () => this.replaceSelected());
+  }
+
+  private toggleSelection(path: string): void {
+    if (this.selected.has(path)) {
+      this.selected.delete(path);
+    } else {
+      this.selected.add(path);
+    }
+    this.updateCard(path);
+    this.updateSelectAllCheckbox();
+  }
+
+  private updateCard(path: string): void {
+    const card = this.cardMap.get(path);
+    if (!card) return;
+    if (this.selected.has(path)) {
+      card.addClass("is-selected");
+    } else {
+      card.removeClass("is-selected");
+    }
+  }
+
+  private updateAllCards(): void {
+    for (const path of this.cardMap.keys()) {
+      this.updateCard(path);
+    }
+  }
+
+  private updateSelectAllCheckbox(): void {
+    if (!this.selectAllCb) return;
+    this.selectAllCb.checked = this.candidates.length > 0 && this.selected.size === this.candidates.length;
+    this.selectAllCb.indeterminate = this.selected.size > 0 && this.selected.size < this.candidates.length;
   }
 
   async replaceSelected(): Promise<void> {
@@ -137,28 +181,34 @@ export class CandidateModal extends Modal {
     const t = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    new Setting(contentEl).setName(t("uploadingTitle")).setHeading();
-    contentEl.createEl("p", {
+    
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
+    const view = container.createDiv({ cls: "attachment-imagebed-manager-progress-view" });
+    
+    view.createEl("h2", { text: t("uploadingTitle") });
+    view.createEl("p", {
       text: t("preparing", { count: total }),
       cls: "attachment-imagebed-manager-summary",
     });
-    this.progressBar = contentEl.createEl("progress", {
-      cls: "attachment-imagebed-manager-progress",
-    });
-    this.progressBar.max = 100;
-    this.progressBar.value = 0;
-    this.progressText = contentEl.createDiv({
+
+    const barContainer = view.createDiv({ cls: "attachment-imagebed-manager-progress-bar-container" });
+    this.progressFill = barContainer.createDiv({ cls: "attachment-imagebed-manager-progress-fill" });
+    this.progressFill.style.width = "0%";
+
+    this.progressText = view.createDiv({
       text: t("starting"),
-      cls: "attachment-imagebed-manager-meta",
+      cls: "attachment-imagebed-manager-progress-text",
     });
   }
 
   updateProgress(state: ProgressState): void {
-    if (!this.progressBar || !this.progressText) return;
+    if (!this.progressFill || !this.progressText) return;
     const t = this.plugin.t.bind(this.plugin);
     const total = Math.max(1, state.total || 1);
     const value = Math.min(100, Math.round(((state.current || 0) / total) * 100));
-    this.progressBar.value = value;
+    
+    this.progressFill.style.width = `${value}%`;
+    
     const phaseMap: Record<string, string> = {
       uploading: t("phaseUploading"),
       uploaded: t("phaseUploaded"),
@@ -175,54 +225,64 @@ export class CandidateModal extends Modal {
     const t = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
     contentEl.empty();
-    new Setting(contentEl).setName(t("linksReplacedTitle")).setHeading();
-    contentEl.createEl("p", {
+
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
+    const view = container.createDiv({ cls: "attachment-imagebed-manager-delete-view" });
+    
+    view.createEl("h2", { text: t("linksReplacedTitle") });
+    view.createEl("p", {
       text: t("linksReplacedDesc"),
       cls: "attachment-imagebed-manager-summary",
     });
+
     if (localFiles.length) {
-      const list = contentEl.createDiv({ cls: "attachment-imagebed-manager-delete-list" });
+      const list = view.createDiv({ cls: "attachment-imagebed-manager-delete-list" });
       for (const fileRecord of localFiles) {
-        list.createDiv({
-          text: `${fileRecord.name} \u00b7 ${fileRecord.path}`,
-          cls: "attachment-imagebed-manager-meta",
-        });
+        const item = list.createDiv({ cls: "attachment-imagebed-manager-delete-item" });
+        item.createDiv({ text: fileRecord.name });
+        item.createDiv({ text: fileRecord.path, cls: "attachment-imagebed-manager-delete-item-path" });
       }
     }
-    const actions = contentEl.createDiv({ cls: "attachment-imagebed-manager-actions" });
-    new Setting(actions)
-      .addButton((button) =>
-        button.setButtonText(t("keepLocal")).onClick(() => this.close())
-      )
-      .addButton((button) =>
-        button
-          .setButtonText(t("deleteLocal"))
-          .setWarning()
-          .onClick(async () => {
-            try {
-              await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
-              new Notice(t("movedToTrash", { count: localFiles.length }));
-              this.close();
-            } catch (error: unknown) {
-              const message = error instanceof Error ? error.message : String(error);
-              console.error("Attachment local delete failed", error);
-              new Notice(t("localDeleteFailed", { error: message }), 10000);
-              this.renderError(error instanceof Error ? error : new Error(message));
-            }
-          })
-      );
+
+    const actions = view.createDiv({ cls: "attachment-imagebed-manager-delete-actions" });
+    
+    const keepBtn = actions.createEl("button", { text: t("keepLocal") });
+    keepBtn.addEventListener("click", () => this.close());
+
+    const deleteBtn = actions.createEl("button", { 
+      text: t("deleteLocal"), 
+      cls: "mod-warning" 
+    });
+    deleteBtn.addEventListener("click", async () => {
+      try {
+        await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
+        new Notice(t("movedToTrash", { count: localFiles.length }));
+        this.close();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Attachment local delete failed", error);
+        new Notice(t("localDeleteFailed", { error: message }), 10000);
+        this.renderError(error instanceof Error ? error : new Error(message));
+      }
+    });
   }
 
   renderError(error: Error): void {
     const t = this.plugin.t.bind(this.plugin);
     const { contentEl } = this;
-    contentEl.createEl("p", {
+    contentEl.empty();
+
+    const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
+    const view = container.createDiv({ cls: "attachment-imagebed-manager-delete-view" });
+    
+    view.createEl("h2", { text: "Error" });
+    view.createEl("p", {
       text: error.message || String(error),
       cls: "attachment-imagebed-manager-summary",
     });
-    const actions = contentEl.createDiv({ cls: "attachment-imagebed-manager-actions" });
-    new Setting(actions).addButton((button) =>
-      button.setButtonText(t("close")).onClick(() => this.close())
-    );
+
+    const actions = view.createDiv({ cls: "attachment-imagebed-manager-delete-actions" });
+    const closeBtn = actions.createEl("button", { text: t("close") });
+    closeBtn.addEventListener("click", () => this.close());
   }
 }

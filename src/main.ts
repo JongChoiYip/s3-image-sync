@@ -1,3 +1,3 @@
-import AttachmentImagebedManagerPlugin from "./plugin";
+import S3ImageSyncPlugin from "./plugin";
 
-export default AttachmentImagebedManagerPlugin;
+export default S3ImageSyncPlugin;

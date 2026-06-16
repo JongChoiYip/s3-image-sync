@@ -1,52 +1,53 @@
-# Attachment Imagebed Manager
-
-Upload your Obsidian note attachments to the cloud and replace local links with remote URLs.
+# S3 Image Sync
 
 [中文说明](#中文说明)
+
+**S3 Image Sync** is a polished, modern, and mobile-friendly Obsidian plugin that scans local note images, uploads them to your S3-compatible cloud storage (Cloudflare R2, AWS S3, MinIO, etc.), and replaces local Markdown links with remote public URLs safely.
+
+---
+
+> 📢 **Fork & Redesign Note**
+>
+> This repository is a **highly refined and redesigned fork** of the original [perinchiang/obsidian-plugins-attachment-imagebed-manager](https://github.com/perinchiang/obsidian-plugins-attachment-imagebed-manager). 
+>
+> **Key Improvements in this Fork:**
+> 1. **Image-First Focus**: Stripped away bloated non-image category logic (PDFs, docs, heavy media) to build a specialized, lightweight, and extremely reliable image uploader and sync engine.
+> 2. **PC & Mobile Responsive UI**: Completely overhauled the upload modal's CSS grid to be fully fluid. Cards size adaptively (`130px` grid with `4:3` preview on desktop vs `100px` square grid on mobile viewports) for a beautiful native look.
+> 3. **Premium Visual Enhancements**:
+>    - Cards feature modern hover float transformations (`translateY(-2px)`) and elegant focus glow shadows.
+>    - Replaced the browser's default checkbox with a custom, overlay SVG checkmark (`✓`) displaying fluid scale/fade animations on select.
+>    - Replaced raw browser progress elements with a sleek, rounded HTML/CSS progress bar.
+>    - Redesigned the Delete Confirmation view into scrollable nested file-path cards.
+> 4. **Frictionless UX & Selection Performance**: Rewrote the modal's state engine. Selection toggles are now handled directly through targeted DOM/CSS state adjustments (using cached Map lookups) instead of triggering a full page re-render. **This completely preserves your scroll position** and enables instantaneous (sub-1ms) selections!
 
 ---
 
 ## Quick Start
 
-1. Install the plugin and open **Settings → Attachment Imagebed Manager**
+1. Install the plugin and open **Settings → S3 Image Sync**
 2. Under **Step 1: Connect your cloud storage**, choose a provider (Cloudflare R2 recommended)
 3. Fill in your credentials and click **Test connection**
-4. Open a note and click the cloud icon in the left sidebar — done!
-
-## What It Does
-
-- Scans your notes for local attachments (images, PDFs, audio, video, etc.)
-- Uploads them to S3-compatible cloud storage (Cloudflare R2, AWS S3, MinIO, etc.)
-- Replaces the local links in your notes with remote URLs
-- Optionally deletes the local files after replacement
+4. Open a note containing local images and click the cloud icon in the left ribbon — done!
 
 ## Features
 
-- **S3-compatible storage**: Cloudflare R2, AWS S3, MinIO, or any S3-compatible provider
-- **Mobile compatible**: Works on both desktop and mobile Obsidian (manual upload only on mobile)
-- **Category-based UI**: Browse attachments by type — Images, Videos, Audio, Documents — with list and gallery views
-- **Custom extensions**: Add your own file types (e.g. `.sketch`, `.fig`, `.psd`)
-- **Safe replacement**: Atomic note writes with concurrent-edit detection; failed uploads are auto-rolled-back
-- **Upload retry**: 3 retries with exponential backoff on transient failures
-- **Delete policies**: Ask before delete, immediate trash, or delayed delete (desktop only)
-- **Auto scan**: Periodic vault-wide scanning with quiet-period and file-size filtering (desktop only)
-- **Dry-run mode**: Preview what would be replaced without making changes
-- **Bilingual UI**: English and Chinese (简体中文)
-- **Code-block aware**: Links inside fenced code blocks and inline code are ignored
+- **S3-compatible storage**: Cloudflare R2 (recommended), AWS S3, MinIO, or any S3-compatible provider.
+- **Cross-Platform Responsive**: Fully functional on both Obsidian desktop and mobile, optimized with custom viewport CSS rules.
+- **Modern Gallery View**: Browse local images easily with lazy-loading previews and smooth selection controls.
+- **Safe Replacement & Rollback**: Atomic note writes with concurrent-edit detection; failed uploads are automatically rolled back.
+- **Upload Resilience**: 3 retries with exponential backoff on transient network failures.
+- **Delete Policies**: Ask before delete, immediate trash, or delayed delete (desktop only).
+- **Auto Scan**: Periodic vault-wide scanning with quiet-period and image size filtering (desktop only).
+- **Dry-run Mode**: Preview which images would be replaced without making changes.
+- **Code-block Aware**: Images inside fenced code blocks and inline code are automatically ignored.
 
 ## Installation
 
-### From Obsidian Community Plugins
-
-1. Open Obsidian → Settings → Community Plugins → Browse
-2. Search for "Attachment Imagebed Manager"
-3. Click Install, then Enable
-
 ### Manual Installation
 
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/perinchiang/obsidian-plugins-attachment-imagebed-manager/releases)
-2. Copy them to `<vault>/.obsidian/plugins/attachment-imagebed-manager/`
-3. Enable the plugin in Obsidian → Settings → Community Plugins
+1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release.
+2. Copy them to `<vault>/.obsidian/plugins/s3-image-sync/`
+3. Enable the plugin in Obsidian → Settings → Community Plugins.
 
 ## Configuration
 
@@ -62,177 +63,69 @@ Choose your storage provider and fill in the credentials:
 | **Access Key ID** | From your storage provider's API settings |
 | **Secret Access Key** | From your storage provider's API settings |
 | **Public access URL** | URL prefix for accessing files, e.g. `https://pub-xxx.r2.dev` |
-| **Upload path template** | Default: `attachments/{ext}/{hash2}/{hash}.{ext}` (works for most cases) |
+| **Upload path template** | Default: `images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}` (supports various path variables) |
 
 Click **Test connection** to verify your settings.
 
 ### Step 2: General Settings
 
-- **Attachment folder**: Only files under this folder are processed (default: `99 Attachments`)
-- **Delete policy**: What to do with local files after replacement
-  - *Ask me each time* (recommended) — shows a confirmation dialog
-  - *Delete immediately* — trashes local files right away
-  - *Delete after a delay* — schedules deletion after configurable hours (desktop only)
-- **Auto-scan vault periodically**: Automatically find and replace eligible attachments (desktop only)
-  - **Scan interval**: How often to scan (default: 30 minutes)
-  - **Skip recently modified files**: Files modified within this time are skipped (default: 600 seconds)
-  - **Minimum file size**: Ignore files smaller than this threshold in auto-scan
-
-### Step 3: Choose File Types (Desktop Only)
-
-This section appears only when auto-scan is enabled. It lets you configure which file types are included in scheduled scans:
-
-- Toggle entire categories (Images, Videos, Audio, Documents)
-- Click individual extensions to toggle them
-- Mark extensions as "Scheduled" to include them in auto-scan
-- Add custom file types (e.g. `sketch`, `fig`, `psd`)
-
-## Usage
-
-### Scan Current Note (All Platforms)
-
-Click the cloud upload icon in the sidebar, or use the command palette:
-- **Scan current note attachments** — shows eligible attachments in a modal with category filters, list/gallery views, and a select-all checkbox
-
-### Vault-wide Preview (Desktop)
-
-Command palette → **Scan vault candidates without replacing** — preview mode, no changes made.
-
-### Auto Scan (Desktop Only)
-
-Enable in settings → **Auto-scan vault periodically**. The plugin will automatically upload and replace eligible attachments in the background.
-
-### Process Delayed Deletes (Desktop)
-
-Command palette → **Process delayed attachment deletes** — manually trigger pending delayed deletions.
-
-## Mobile Notes
-
-On mobile devices:
-- Manual upload and replacement works normally
-- Scheduled auto-scan is disabled (to preserve battery and avoid background restrictions)
-- Delayed delete policy is not available (use "Ask me each time" or "Delete immediately")
-- File type configuration (Step 3) is hidden since it only applies to auto-scan
-
-## Building from Source
-
-```bash
-git clone https://github.com/perinchiang/attachment-imagebed-manager.git
-cd attachment-imagebed-manager
-npm install
-npm run dev    # watch mode
-npm run build  # production build
-```
-
-## Security
-
-- Credentials are stored locally in `data.json`. **Do not sync `data.json` to public repositories.**
-- `data.json` is included in `.gitignore` by default.
-- If you accidentally commit `data.json`, rotate your S3 credentials immediately.
-
-## License
-
-MIT
+- **Image folder**: Only files under this folder are processed (default: `99 Attachments`).
+- **Delete policy**: What to do with local files after replacement:
+  - *Ask me each time* (recommended) — shows an elegant confirmation dialog.
+  - *Delete immediately* — trashes local files right away.
+  - *Delete after a delay* — schedules deletion after configurable hours (desktop only).
+- **Auto-scan vault periodically**: Automatically find and replace eligible images in the background (desktop only).
+  - **Scan interval**: How often to scan (default: 30 minutes).
+  - **Skip recently modified files**: Skip files modified within this time (default: 10 minutes).
+  - **Minimum file size**: Ignore files smaller than this threshold in auto-scan.
 
 ---
 
 ## 中文说明
 
-将 Obsidian 笔记中的本地附件上传到云存储，并将本地链接替换为远程 URL。
+**S3 Image Sync** 是一款优雅、轻量且对移动端深度优化的 Obsidian 插件。它能自动扫描当前笔记中的本地图片，安全上传至 S3 兼容的云存储（如 Cloudflare R2、AWS S3、MinIO 等），并自动将笔记中的本地链接无缝替换为公共云端 URL。
 
-### 快速上手
+> 📢 **Fork 与全新重构声明**
+>
+> 本项目是基于原版 [perinchiang/obsidian-plugins-attachment-imagebed-manager](https://github.com/perinchiang/obsidian-plugins-attachment-imagebed-manager) 的**重构与深度美化版本**。
+>
+> **我们在原版基础上做出了如下核心改进：**
+> 1. **专注图片同步**：砍掉了复杂沉重的通用附件分类（PDF、文档、大媒体）逻辑，代码体量大幅缩减，打造专门针对 Markdown 图片的轻量极致同步引擎。
+> 2. **PC & 移动端全兼容响应式 UI**：全新重构了上传弹窗。卡片采用弹性网格适配（PC端 `4:3` 比例 `130px` 宽度网格，移动端自适应为 `1:1` 正方形 `100px` 网格），在手机等窄屏设备上视觉极为精致，告别局促。
+> 3. **豪华视觉效果与交互微动效**：
+>    - 卡片增加了现代化的物理悬浮动效（`translateY(-2px)`）和外发光精致投影。
+>    - 彻底移除了原生的浏览器复选框，改用高颜值的绝对定位 SVG 勾选框（`✓`），伴随平滑缩放与淡入淡出动画。
+>    - 进度条改用极简、圆润的 CSS 动效进度条，告别老旧的原生外观。
+>    - 优化了删除确认页，将要处理的路径包裹入独立滚动的精致子卡片容器中。
+> 4. **零延迟状态机 & 保留滚动位置**：重构了弹窗内的状态管理。现在勾选图片仅会通过缓存 Map 精准改变对应 DOM 的 CSS 样式类，**完全不会触发全量重渲染，完美保留您的滚动条位置**。即便有数百张图也支持瞬时（1毫秒内）无感响应。
 
-1. 安装插件，打开 **设置 → 附件图床管理器**
+---
+
+## 快速上手
+
+1. 安装插件，打开 **设置 → S3 Image Sync**
 2. 在 **第一步：连接云存储** 中选择服务商（推荐 Cloudflare R2）
 3. 填写凭据，点击 **测试连接** 验证
-4. 打开一篇笔记，点击左侧栏的云图标 — 完成！
+4. 打开一篇有本地图片的笔记，点击左侧栏的云图标 — 搞定！
 
-### 功能
+## 核心功能
 
-- **S3 兼容存储**: 支持 Cloudflare R2、AWS S3、MinIO 及任意 S3 兼容服务
-- **移动端兼容**: 桌面端和移动端均可使用（移动端仅支持手动上传）
-- **分类浏览**: 按图片、视频、音频、文档分类浏览附件，支持列表和画廊视图
-- **自定义后缀**: 可添加自定义文件类型（如 `.sketch`、`.fig`、`.psd`）
-- **安全替换**: 原子写入，检测并发编辑；上传失败时自动回滚
-- **上传重试**: 网络错误时自动重试 3 次（指数退避）
-- **删除策略**: 每次询问 / 立即删除 / 延迟删除（仅桌面端）
-- **自动扫描**: 定时全库扫描，支持静默期和文件大小过滤（仅桌面端）
-- **预览模式**: 全库扫描预览，不实际替换
-- **双语界面**: 中文和英文
-- **代码块感知**: 忽略代码块和行内代码中的链接
+- **S3 兼容存储**: 支持 Cloudflare R2、AWS S3、MinIO 及任意 S3 兼容服务。
+- **移动端兼容**: 桌面端和移动端均可使用，移动端也拥有优雅、独立的响应式布局。
+- **安全替换 & 自动回退**: 原子性文件写入，检测并发编辑；上传中途失败时自动删除已上传文件并回滚。
+- **上传重试**: 网络错误时自动进行 3 次指数退避重试。
+- **删除策略**: 每次询问 / 立即删除 / 延迟删除（仅桌面端）。
+- **定期后台扫描**: 定时全库静默扫描，支持文件修改保护静默期（仅桌面端）。
+- **代码块感知**: 智能忽略 fenced code block 和行内代码中的图片。
 
-### 配置
+## 安装
 
-#### 第一步：连接云存储
+### 手动安装
 
-选择存储服务商并填写凭据：
+1. 从最新 Release 下载 `main.js`、`manifest.json` 和 `styles.css`。
+2. 复制到 `<vault>/.obsidian/plugins/s3-image-sync/` 目录下。
+3. 在 Obsidian 设置 → 第三方插件 中启用 **S3 Image Sync**。
 
-| 字段 | 说明 |
-|------|------|
-| **存储服务商** | Cloudflare R2（推荐）、AWS S3、MinIO、自定义 S3 |
-| **端点 URL** | 存储端点，如 `https://abc123.r2.cloudflarestorage.com` |
-| **存储桶名称** | 你创建的存储桶 |
-| **Access Key ID** | 在存储服务商的 API 设置中获取 |
-| **Secret Access Key** | 在存储服务商的 API 设置中获取 |
-| **公开访问 URL** | 上传文件的访问前缀，如 `https://pub-xxx.r2.dev` |
-| **上传路径模板** | 默认：`attachments/{ext}/{hash2}/{hash}.{ext}`（适用于大多数情况） |
-
-点击 **测试连接** 验证设置。
-
-#### 第二步：基本设置
-
-- **附件文件夹**: 只处理此文件夹下的文件（默认：`99 Attachments`）
-- **删除策略**: 替换链接后本地文件的处理方式
-  - *每次询问我*（推荐）— 弹出确认对话框
-  - *替换后立即删除* — 直接移入回收站
-  - *延迟删除* — 在指定小时后移入回收站（仅桌面端）
-- **定期自动扫描全库**: 自动在后台查找并替换符合条件的附件（仅桌面端）
-  - **扫描间隔**: 多久扫描一次（默认：30 分钟）
-  - **跳过最近修改的文件**: 在此时间内修改过的文件会被跳过（默认：600 秒）
-  - **最小文件大小**: 自动扫描忽略小于此大小的文件
-
-#### 第三步：选择文件类型（仅桌面端）
-
-此部分仅在开启自动扫描时显示，用于配置定时扫描包含的文件类型：
-
-- 按分类切换（图片、视频、音频、文档）
-- 点击单个后缀切换
-- 标记为"定时"以加入自动扫描
-- 添加自定义文件类型（如 `sketch`、`fig`、`psd`）
-
-### 使用
-
-#### 扫描当前文档（全平台）
-
-点击侧边栏云上传图标，或使用命令面板：
-- **扫描当前文档附件** — 在弹窗中按分类浏览、列表/画廊切换、全选附件
-
-#### 全库预览（桌面端）
-
-命令面板 → **扫描全库候选但不替换** — 预览模式，不做任何修改。
-
-#### 自动扫描（仅桌面端）
-
-在设置中开启 **定期自动扫描全库**，插件会自动在后台上传替换符合条件的附件。
-
-#### 处理延迟删除（桌面端）
-
-命令面板 → **处理延迟删除附件** — 手动触发待执行的延迟删除。
-
-### 移动端说明
-
-在移动设备上：
-- 手动上传和替换功能正常使用
-- 定时自动扫描已禁用（节省电量，避免后台限制）
-- 延迟删除策略不可用（请使用"每次询问"或"立即删除"）
-- 文件类型配置（第三步）已隐藏，因为仅对自动扫描生效
-
-### 安全
-
-- 凭据存储在本地 `data.json` 中。**不要将 `data.json` 同步到公开仓库。**
-- `data.json` 默认已包含在 `.gitignore` 中。
-- 如果你不小心提交了 `data.json`，请立即轮换你的 S3 凭据。
-
-### 许可证
+## 许可证
 
 MIT

@@ -28,9 +28,9 @@ import {
 import { detectLocaleFromApp, t as translate } from "./i18n";
 import { CandidateModal } from "./candidate-modal";
 import { DryRunModal } from "./dry-run-modal";
-import { AttachmentImagebedSettingTab } from "./settings-tab";
+import { S3ImageSyncSettingTab } from "./settings-tab";
 
-export default class AttachmentImagebedManagerPlugin extends Plugin {
+export default class S3ImageSyncPlugin extends Plugin {
   declare settings: PluginSettings;
   locale!: string;
   autoScanTimer: number | null = null;
@@ -63,7 +63,7 @@ export default class AttachmentImagebedManagerPlugin extends Plugin {
       callback: () => this.processPendingDeletes(),
     });
 
-    this.addSettingTab(new AttachmentImagebedSettingTab(this.app, this));
+    this.addSettingTab(new S3ImageSyncSettingTab(this.app, this));
     if (!this.isMobile) {
       await this.processPendingDeletes();
       this.registerInterval(

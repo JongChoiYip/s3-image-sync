@@ -1,12 +1,12 @@
 import { App, Modal, Setting } from "obsidian";
-import type AttachmentImagebedManagerPlugin from "./plugin";
+import type S3ImageSyncPlugin from "./plugin";
 
 export class DryRunModal extends Modal {
-  plugin: AttachmentImagebedManagerPlugin;
+  plugin: S3ImageSyncPlugin;
   count: number;
   samples: string[];
 
-  constructor(app: App, plugin: AttachmentImagebedManagerPlugin, count: number, samples: string[]) {
+  constructor(app: App, plugin: S3ImageSyncPlugin, count: number, samples: string[]) {
     super(app);
     this.plugin = plugin;
     this.count = count;
