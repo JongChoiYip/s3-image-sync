@@ -1,7 +1,7 @@
 {
-  "id": "s3-image-sync",
+  "id": "images-uploader",
   "name": "S3 Image Sync",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.12.0",
   "description": "Scan local note images, upload to S3-compatible storage (R2/AWS S3/MinIO), and replace links safely.",
   "author": "JongChoiYip",
