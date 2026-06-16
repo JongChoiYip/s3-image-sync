@@ -1151,7 +1151,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     new import_obsidian2.Setting(actions).addButton(
       (button) => button.setButtonText(t2("keepLocal")).onClick(() => this.close())
     ).addButton(
-      (button) => button.setButtonText(t2("deleteLocal")).setDestructive().onClick(async () => {
+      (button) => button.setButtonText(t2("deleteLocal")).setWarning().onClick(async () => {
         try {
           await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
           new import_obsidian2.Notice(t2("movedToTrash", { count: localFiles.length }));

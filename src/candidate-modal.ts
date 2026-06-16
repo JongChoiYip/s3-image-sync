@@ -343,7 +343,7 @@ export class CandidateModal extends Modal {
       .addButton((button) =>
         button
           .setButtonText(t("deleteLocal"))
-          .setDestructive()
+          .setWarning()
           .onClick(async () => {
             try {
               await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
