@@ -34,7 +34,7 @@ export class CandidateModal extends Modal {
     
     // Create modern modal wrapper structure
     const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
 
     // 1. Header
     const header = container.createDiv({ cls: "attachment-imagebed-manager-header" });
@@ -156,7 +156,7 @@ export class CandidateModal extends Modal {
   }
 
   async replaceSelected(): Promise<void> {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const chosen = this.candidates.filter((c) => this.selected.has(c.file.path));
     if (!chosen.length) {
       new Notice(t("noSelected"));
@@ -178,7 +178,7 @@ export class CandidateModal extends Modal {
   }
 
   renderProgress(total: number): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
     
@@ -203,7 +203,7 @@ export class CandidateModal extends Modal {
 
   updateProgress(state: ProgressState): void {
     if (!this.progressFill || !this.progressText) return;
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const total = Math.max(1, state.total || 1);
     const value = Math.min(100, Math.round(((state.current || 0) / total) * 100));
     
@@ -222,7 +222,7 @@ export class CandidateModal extends Modal {
   }
 
   renderDeleteConfirmation(localFiles: LocalFileRecord[]): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
 
@@ -268,7 +268,7 @@ export class CandidateModal extends Modal {
   }
 
   renderError(error: Error): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
 

@@ -14,7 +14,7 @@ export class DryRunModal extends Modal {
   }
 
   onOpen(): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
     new Setting(contentEl).setName(t("vaultScanTitle")).setHeading();

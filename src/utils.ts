@@ -102,10 +102,10 @@ export function toAmzDate(date: Date): string {
   return date.toISOString().replace(/[:-]|\.\d{3}/g, "");
 }
 
-export function debounce<T extends (...args: Parameters<T>) => void>(fn: T, ms: number): T {
-  let timer: ReturnType<typeof window.setTimeout>;
-  return ((...args: Parameters<T>) => {
+export function debounce<T extends (...args: Parameters<T>) => void>(fn: T, ms: number): (...args: Parameters<T>) => void {
+  let timer: number;
+  return (...args: Parameters<T>) => {
     window.clearTimeout(timer);
     timer = window.setTimeout(() => fn(...args), ms);
-  }) as unknown as T;
+  };
 }

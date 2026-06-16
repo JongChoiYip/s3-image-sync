@@ -23,7 +23,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
 
     new Setting(containerEl).setName(t("settingsTitle")).setHeading();
     this.renderSetupStatus(containerEl);
@@ -47,7 +47,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   private renderSetupStatus(containerEl: HTMLElement): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const configured = this.isS3Configured();
     const statusEl = containerEl.createDiv({ cls: "attachment-imagebed-manager-status" });
     const icon = statusEl.createEl("span", {
@@ -62,7 +62,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   private renderS3Settings(containerEl: HTMLElement): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
 
@@ -124,7 +124,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
           text.setPlaceholder(isPassword ? "********" : "");
           const s3Key = key as keyof S3Config;
           text.setValue(String(this.plugin.settings.s3[s3Key] || "")).onChange((value) => {
-            (this.plugin.settings.s3 as Record<string, string>)[s3Key] = value.trim();
+            (this.plugin.settings.s3 as unknown as Record<string, string>)[s3Key] = value.trim();
             debouncedSave();
           });
         });
@@ -171,7 +171,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   private renderGeneralSettings(containerEl: HTMLElement): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
 
@@ -283,7 +283,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   private renderFileTypeSettings(containerEl: HTMLElement): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     new Setting(containerEl).setName(t("fileTypes")).setHeading();
     containerEl.createEl("p", {
       text: t("fileTypesDesc"),
@@ -298,7 +298,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   private renderCategory(containerEl: HTMLElement, category: FileCategory): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const settings = this.plugin.settings;
     const enabledSet = new Set(settings.enabledExtensions);
     const autoSet = new Set(settings.autoCandidateExts);
@@ -388,7 +388,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   private renderCustomExtensions(containerEl: HTMLElement): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const settings = this.plugin.settings;
     const enabledSet = new Set(settings.enabledExtensions);
     const autoSet = new Set(settings.autoCandidateExts);
@@ -471,7 +471,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   private renderLogSection(containerEl: HTMLElement): void {
-    const t = this.plugin.t.bind(this.plugin);
+    const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
     const settings = this.plugin.settings;
 
     new Setting(containerEl).setName(t("recentLog")).setHeading();
