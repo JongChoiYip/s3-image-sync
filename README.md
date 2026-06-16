@@ -91,7 +91,7 @@ Click **Test connection** to verify your settings.
 >
 > 本项目是基于原版 [perinchiang/obsidian-plugins-attachment-imagebed-manager](https://github.com/perinchiang/obsidian-plugins-attachment-imagebed-manager) 的**重构与深度美化版本**。
 >
-> 本项目分支中的所有代码重构、UI界面重新设计、交互逻辑改进及文档编写，均由 **Gemini**（当前 AI 模型）提供协助并自主生成。
+> 本项目分支中的所有代码重构、UI界面重新设计、交互逻辑改进及文档编写，均由 **gemini-3.1-pro-preview** 提供协助并自主生成。
 >
 > **我们在原版基础上做出了如下核心改进：**
 > 1. **专注图片同步**：砍掉了复杂沉重的通用附件分类（PDF、文档、大媒体）逻辑，代码体量大幅缩减，打造专门针对 Markdown 图片的轻量极致同步引擎。
