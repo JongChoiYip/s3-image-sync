@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "minAppVersion": "1.4.0",
   "description": "Scan local note images, upload to S3-compatible storage (R2/AWS S3/MinIO), and replace links safely.",
-  "author": "perinchiang",
-  "authorUrl": "https://github.com/perinchiang",
+  "author": "JongChoiYip",
+  "authorUrl": "https://github.com/JongChoiYip",
   "isDesktopOnly": false
 }

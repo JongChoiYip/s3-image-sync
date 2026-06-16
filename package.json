@@ -8,7 +8,7 @@
     "build": "node esbuild.config.mjs production"
   },
   "keywords": [],
-  "author": "Patrick",
+  "author": "JongChoiYip",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",
