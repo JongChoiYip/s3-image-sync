@@ -265,7 +265,7 @@ export default class S3ImageSyncPlugin extends Plugin {
   }
 
   isUnderAttachmentRoot(file: TFile): boolean {
-    const root = trimSlashes(this.settings.attachmentRoot || "99 Attachments");
+    const root = trimSlashes(this.settings.attachmentRoot || "90-笔记系统/92-附件");
     return file.path === root || file.path.startsWith(`${root}/`);
   }
 

@@ -30,7 +30,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   scanIntervalMinutes: 30,
   quietSeconds: 600,
   autoScanMinSizeMiB: 0,
-  attachmentRoot: "99 Attachments",
+  attachmentRoot: "90-笔记系统/92-附件",
   deletePolicy: "confirm",
   autoDeleteDelayHours: 24,
   s3: DEFAULT_S3,

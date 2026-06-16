@@ -193,7 +193,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
       .setDesc(t("attachmentRootDesc"))
       .addText((text) =>
         text.setValue(this.plugin.settings.attachmentRoot).onChange((value) => {
-          this.plugin.settings.attachmentRoot = value.trim() || "99 Attachments";
+          this.plugin.settings.attachmentRoot = value.trim() || "90-笔记系统/92-附件";
           void save();
         })
       );

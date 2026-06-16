@@ -241,7 +241,7 @@ export const I18N: Record<string, Record<string, string>> = {
     mobileHint:
       "提示：移动端不支持定时自动扫描和延迟删除。手动上传和替换功能正常使用。",
     attachmentRoot: "图片文件夹",
-    attachmentRootDesc: "只处理此文件夹下的图片。默认：99 Attachments",
+    attachmentRootDesc: "只处理此文件夹下的图片。默认：90-笔记系统/92-附件",
     deletePolicy: "替换链接后，是否删除本地文件？",
     deletePolicyDesc: "选择替换为远程链接后，原本地文件的处理方式。",
     deleteConfirm: "每次询问我（推荐）",

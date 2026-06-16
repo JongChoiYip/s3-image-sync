@@ -91,7 +91,7 @@ var DEFAULT_SETTINGS = {
   scanIntervalMinutes: 30,
   quietSeconds: 600,
   autoScanMinSizeMiB: 0,
-  attachmentRoot: "99 Attachments",
+  attachmentRoot: "90-\u7B14\u8BB0\u7CFB\u7EDF/92-\u9644\u4EF6",
   deletePolicy: "confirm",
   autoDeleteDelayHours: 24,
   s3: DEFAULT_S3,
@@ -778,7 +778,7 @@ var I18N = {
     pluginEnabledDesc: "\u5F00\u542F\u6216\u5173\u95ED\u626B\u63CF\u548C\u66FF\u6362\u529F\u80FD\u3002",
     mobileHint: "\u63D0\u793A\uFF1A\u79FB\u52A8\u7AEF\u4E0D\u652F\u6301\u5B9A\u65F6\u81EA\u52A8\u626B\u63CF\u548C\u5EF6\u8FDF\u5220\u9664\u3002\u624B\u52A8\u4E0A\u4F20\u548C\u66FF\u6362\u529F\u80FD\u6B63\u5E38\u4F7F\u7528\u3002",
     attachmentRoot: "\u56FE\u7247\u6587\u4EF6\u5939",
-    attachmentRootDesc: "\u53EA\u5904\u7406\u6B64\u6587\u4EF6\u5939\u4E0B\u7684\u56FE\u7247\u3002\u9ED8\u8BA4\uFF1A99 Attachments",
+    attachmentRootDesc: "\u53EA\u5904\u7406\u6B64\u6587\u4EF6\u5939\u4E0B\u7684\u56FE\u7247\u3002\u9ED8\u8BA4\uFF1A90-\u7B14\u8BB0\u7CFB\u7EDF/92-\u9644\u4EF6",
     deletePolicy: "\u66FF\u6362\u94FE\u63A5\u540E\uFF0C\u662F\u5426\u5220\u9664\u672C\u5730\u6587\u4EF6\uFF1F",
     deletePolicyDesc: "\u9009\u62E9\u66FF\u6362\u4E3A\u8FDC\u7A0B\u94FE\u63A5\u540E\uFF0C\u539F\u672C\u5730\u6587\u4EF6\u7684\u5904\u7406\u65B9\u5F0F\u3002",
     deleteConfirm: "\u6BCF\u6B21\u8BE2\u95EE\u6211\uFF08\u63A8\u8350\uFF09",
@@ -1234,7 +1234,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     );
     new import_obsidian4.Setting(containerEl).setName(t2("attachmentRoot")).setDesc(t2("attachmentRootDesc")).addText(
       (text) => text.setValue(this.plugin.settings.attachmentRoot).onChange((value) => {
-        this.plugin.settings.attachmentRoot = value.trim() || "99 Attachments";
+        this.plugin.settings.attachmentRoot = value.trim() || "90-\u7B14\u8BB0\u7CFB\u7EDF/92-\u9644\u4EF6";
         void save();
       })
     );
@@ -1717,7 +1717,7 @@ var S3ImageSyncPlugin = class extends import_obsidian5.Plugin {
     return relative instanceof import_obsidian5.TFile ? relative : null;
   }
   isUnderAttachmentRoot(file) {
-    const root = trimSlashes(this.settings.attachmentRoot || "99 Attachments");
+    const root = trimSlashes(this.settings.attachmentRoot || "90-\u7B14\u8BB0\u7CFB\u7EDF/92-\u9644\u4EF6");
     return file.path === root || file.path.startsWith(`${root}/`);
   }
   isCoverReference(text, ref) {
