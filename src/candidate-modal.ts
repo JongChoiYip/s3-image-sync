@@ -193,7 +193,7 @@ export class CandidateModal extends Modal {
 
     const barContainer = view.createDiv({ cls: "attachment-imagebed-manager-progress-bar-container" });
     this.progressFill = barContainer.createDiv({ cls: "attachment-imagebed-manager-progress-fill" });
-    this.progressFill.style.width = "0%";
+    this.progressFill.setCssStyles({ width: "0%" });
 
     this.progressText = view.createDiv({
       text: t("starting"),
@@ -207,7 +207,7 @@ export class CandidateModal extends Modal {
     const total = Math.max(1, state.total || 1);
     const value = Math.min(100, Math.round(((state.current || 0) / total) * 100));
     
-    this.progressFill.style.width = `${value}%`;
+    this.progressFill.setCssStyles({ width: `${value}%` });
     
     const phaseMap: Record<string, string> = {
       uploading: t("phaseUploading"),
