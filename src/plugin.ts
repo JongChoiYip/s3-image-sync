@@ -501,7 +501,7 @@ export default class S3ImageSyncPlugin extends Plugin {
         });
         continue;
       }
-      await this.app.fileManager.trashFile(file);
+      await this.app.vault.trash(file, true);
       this.addLog({
         status,
         notePath: noteFile.path,
