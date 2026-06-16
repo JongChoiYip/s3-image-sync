@@ -13,24 +13,15 @@ const DEFAULT_S3: S3Config = {
 };
 
 const DEFAULT_ENABLED_EXTS: string[] = [
-  "pdf",
-  "mp3", "m4a", "wav",
-  "mp4", "mov",
-  "epub",
+  "png", "jpg", "jpeg", "gif", "webp", "svg", "heic", "bmp", "tiff"
 ];
 
 const DEFAULT_MIN_SIZE: Record<string, number> = {
-  pdf: 1,
-  mp3: 10, m4a: 10, wav: 10,
-  mp4: 0, mov: 0,
-  epub: 10,
+  png: 0, jpg: 0, jpeg: 0, gif: 0, webp: 0, svg: 0, heic: 0, bmp: 0, tiff: 0,
 };
 
 const DEFAULT_AUTO_CANDIDATE_EXTS: string[] = [
-  "pdf",
-  "mp3", "m4a", "wav",
-  "mp4", "mov",
-  "epub",
+  "png", "jpg", "jpeg", "gif", "webp", "svg", "heic", "bmp", "tiff"
 ];
 
 export const DEFAULT_SETTINGS: PluginSettings = {
