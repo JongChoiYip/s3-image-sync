@@ -316,7 +316,12 @@ function safeFilename(name) {
   return String(name || "attachment").replace(/[\\/:*?"<>|#%]+/g, "-");
 }
 function renderPathTemplate(template, values) {
-  return String(template || "attachments/{ext}/{hash2}/{hash}.{ext}").replace(/\{ext\}/g, values.ext).replace(/\{hash\}/g, values.hash).replace(/\{hash2\}/g, values.hash2).replace(/\{filename\}/g, values.filename).replace(/^\/+/, "");
+  const now = /* @__PURE__ */ new Date();
+  const yyyy = String(now.getFullYear());
+  const MM = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const hashShort = (values.hash || "").slice(0, 32);
+  return String(template || "attachments/{ext}/{hash2}/{hash}.{ext}").replace(/\{ext\}/g, values.ext).replace(/\{hash\}/g, values.hash).replace(/\{hash2\}/g, values.hash2).replace(/\{filename\}/g, values.filename).replace(/\{hash-short\}/g, hashShort).replace(/\{yyyy\}/g, yyyy).replace(/\{MM\}/g, MM).replace(/\{dd\}/g, dd).replace(/^\/+/, "");
 }
 function buildPublicUrl(domain, key) {
   let cleanDomain = String(domain || "").replace(/\/+$/, "");
@@ -644,7 +649,7 @@ var I18N = {
     publicDomain: "Public access URL",
     publicDomainDesc: "The URL prefix for accessing uploaded files, e.g. https://pub-xxx.r2.dev",
     objectPathTemplate: "Upload path template",
-    pathTemplateDesc: "Variables: {ext} = extension, {hash} = file hash, {hash2} = first 2 chars of hash, {filename} = original name. Default works for most cases.",
+    pathTemplateDesc: "Variables: {ext} = extension, {hash} = file hash, {hash-short} = 32-char short hash, {hash2} = first 2 chars of hash, {filename} = original name, {yyyy}/{MM}/{dd} = date. Default works for most cases.",
     testConnection: "Test connection",
     testConnectionDesc: "Click to verify your credentials are correct.",
     testing: "Testing...",
@@ -777,7 +782,7 @@ var I18N = {
     publicDomain: "\u516C\u5F00\u8BBF\u95EE URL",
     publicDomainDesc: "\u4E0A\u4F20\u6587\u4EF6\u7684\u8BBF\u95EE\u524D\u7F00\uFF0C\u4F8B\u5982 https://pub-xxx.r2.dev",
     objectPathTemplate: "\u4E0A\u4F20\u8DEF\u5F84\u6A21\u677F",
-    pathTemplateDesc: "\u53EF\u7528\u53D8\u91CF\uFF1A{ext} = \u540E\u7F00\uFF0C{hash} = \u6587\u4EF6\u54C8\u5E0C\uFF0C{hash2} = \u54C8\u5E0C\u524D2\u4F4D\uFF0C{filename} = \u539F\u59CB\u6587\u4EF6\u540D\u3002\u9ED8\u8BA4\u503C\u9002\u7528\u4E8E\u5927\u591A\u6570\u60C5\u51B5\u3002",
+    pathTemplateDesc: "\u53EF\u7528\u53D8\u91CF\uFF1A{ext} = \u540E\u7F00\uFF0C{hash} = \u6587\u4EF6\u54C8\u5E0C\uFF0C{hash-short} = 32\u4F4D\u77ED\u54C8\u5E0C\uFF0C{hash2} = \u54C8\u5E0C\u524D2\u4F4D\uFF0C{filename} = \u539F\u59CB\u6587\u4EF6\u540D\uFF0C{yyyy}/{MM}/{dd} = \u65E5\u671F\u3002\u9ED8\u8BA4\u503C\u9002\u7528\u4E8E\u5927\u591A\u6570\u60C5\u51B5\u3002",
     testConnection: "\u6D4B\u8BD5\u8FDE\u63A5",
     testConnectionDesc: "\u70B9\u51FB\u9A8C\u8BC1\u51ED\u636E\u662F\u5426\u6B63\u786E\u3002",
     testing: "\u6D4B\u8BD5\u4E2D...",

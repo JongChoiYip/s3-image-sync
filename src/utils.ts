@@ -14,11 +14,21 @@ export function renderPathTemplate(
   template: string,
   values: { ext: string; hash: string; hash2: string; filename: string }
 ): string {
+  const now = new Date();
+  const yyyy = String(now.getFullYear());
+  const MM = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const hashShort = (values.hash || "").slice(0, 32);
+
   return String(template || "attachments/{ext}/{hash2}/{hash}.{ext}")
     .replace(/\{ext\}/g, values.ext)
     .replace(/\{hash\}/g, values.hash)
     .replace(/\{hash2\}/g, values.hash2)
     .replace(/\{filename\}/g, values.filename)
+    .replace(/\{hash-short\}/g, hashShort)
+    .replace(/\{yyyy\}/g, yyyy)
+    .replace(/\{MM\}/g, MM)
+    .replace(/\{dd\}/g, dd)
     .replace(/^\/+/, "");
 }
 
