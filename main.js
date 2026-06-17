@@ -880,9 +880,9 @@ var CandidateModal = class extends import_obsidian2.Modal {
       this.cardMap.set(path, card);
       const previewArea = card.createDiv({ cls: "attachment-imagebed-manager-gallery-preview" });
       const checkIcon = previewArea.createDiv({ cls: "attachment-imagebed-manager-gallery-check" });
-      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      const svg = activeDocument.createElementNS("http://www.w3.org/2000/svg", "svg");
       svg.setAttribute("viewBox", "0 0 24 24");
-      const svgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const svgPath = activeDocument.createElementNS("http://www.w3.org/2000/svg", "path");
       svgPath.setAttribute("d", "M20 6L9 17l-5-5");
       svg.appendChild(svgPath);
       checkIcon.appendChild(svg);
