@@ -134,14 +134,14 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
         });
     }
 
-    const descFragment = document.createDocumentFragment();
+    const descFragment = activeDocument.createDocumentFragment();
     t("pathTemplateDesc")
       .split("\n")
       .forEach((line, idx) => {
         if (idx > 0) {
-          descFragment.appendChild(document.createElement("br"));
+          descFragment.appendChild(activeDocument.createElement("br"));
         }
-        descFragment.appendChild(document.createTextNode(line));
+        descFragment.appendChild(activeDocument.createTextNode(line));
       });
 
     new Setting(containerEl)

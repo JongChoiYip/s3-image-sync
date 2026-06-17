@@ -1203,12 +1203,12 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
         });
       });
     }
-    const descFragment = document.createDocumentFragment();
+    const descFragment = activeDocument.createDocumentFragment();
     t2("pathTemplateDesc").split("\n").forEach((line, idx) => {
       if (idx > 0) {
-        descFragment.appendChild(document.createElement("br"));
+        descFragment.appendChild(activeDocument.createElement("br"));
       }
-      descFragment.appendChild(document.createTextNode(line));
+      descFragment.appendChild(activeDocument.createTextNode(line));
     });
     new import_obsidian4.Setting(containerEl).setName(t2("objectPathTemplate")).setDesc(descFragment).addText(
       (text) => text.setPlaceholder("attachments/{ext}/{hash2}/{hash}.{ext}").setValue(String(this.plugin.settings.s3.pathTemplate || "")).onChange((value) => {
