@@ -134,9 +134,19 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
         });
     }
 
+    const descFragment = document.createDocumentFragment();
+    t("pathTemplateDesc")
+      .split("\n")
+      .forEach((line, idx) => {
+        if (idx > 0) {
+          descFragment.appendChild(document.createElement("br"));
+        }
+        descFragment.appendChild(document.createTextNode(line));
+      });
+
     new Setting(containerEl)
       .setName(t("objectPathTemplate"))
-      .setDesc(t("pathTemplateDesc"))
+      .setDesc(descFragment)
       .addText((text) =>
         text
           .setPlaceholder("attachments/{ext}/{hash2}/{hash}.{ext}")

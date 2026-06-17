@@ -83,7 +83,16 @@ export const I18N: Record<string, Record<string, string>> = {
     publicDomainDesc: "The URL prefix for accessing uploaded files, e.g. https://pub-xxx.r2.dev",
     objectPathTemplate: "Upload path template",
     pathTemplateDesc:
-      "Variables: {ext} = extension (e.g. png), {hash} = 64-char SHA-256 hash, {hash-short} = 32-char short hash, {hash2} = first 2 chars of hash, {filename} = original name, {yyyy}/{MM}/{dd} = date. Default: attachments/{ext}/{hash2}/{hash}.{ext}",
+      "Dynamically customize the S3 upload path. Supported variables:\n" +
+      "• \\{ext}: File extension (e.g. png, jpg)\n" +
+      "• \\{hash}: 64-char full SHA-256 hash\n" +
+      "• \\{hash-short}: 32-char short hash\n" +
+      "• \\{hash2}: First 2 chars of hash (for partition)\n" +
+      "• \\{filename}: Original file name (excluding extension)\n" +
+      "• \\{yyyy}: Current year (4 digits)\n" +
+      "• \\{MM}: Current month (2 digits)\n" +
+      "• \\{dd}: Current day (2 digits)\n" +
+      "Default: attachments/\\{ext}/\\{hash2}/\\{hash}.\\{ext}",
     testConnection: "Test connection",
     testConnectionDesc: "Click to verify your credentials are correct.",
     testing: "Testing...",
@@ -227,7 +236,16 @@ export const I18N: Record<string, Record<string, string>> = {
     publicDomainDesc: "上传文件的访问前缀，例如 https://pub-xxx.r2.dev",
     objectPathTemplate: "上传路径模板",
     pathTemplateDesc:
-      "可用变量：{ext} = 文件扩展名 (如 png)，{hash} = 64位完整 SHA-256 哈希，{hash-short} = 32位短哈希，{hash2} = 哈希前2位字符，{filename} = 原始文件名 (不含扩展名)，{yyyy}/{MM}/{dd} = 当前年月日。默认值：attachments/{ext}/{hash2}/{hash}.{ext}",
+      "自定义 S3 上传路径。支持以下变量：\n" +
+      "• \\{ext}：文件扩展名/后缀 (如 png、jpg 等)\n" +
+      "• \\{hash}：64位完整 SHA-256 文件哈希值\n" +
+      "• \\{hash-short}：32位短 SHA-256 文件哈希值\n" +
+      "• \\{hash2}：SHA-256 哈希值的前2位字符 (适合海量文件二级分流)\n" +
+      "• \\{filename}：原始文件名 (不含扩展名)\n" +
+      "• \\{yyyy}：4位当前年份 (如 2026)\n" +
+      "• \\{MM}：2位当前月份 (如 06)\n" +
+      "• \\{dd}：2位当前日期 (如 17)\n" +
+      "默认值：attachments/\\{ext}/\\{hash2}/\\{hash}.\\{ext}",
     testConnection: "测试连接",
     testConnectionDesc: "点击验证凭据是否正确。",
     testing: "测试中...",
@@ -298,5 +316,8 @@ export function detectLocaleFromApp(getLanguage: () => string): string {
 export function t(locale: string, key: string, params: Record<string, unknown> = {}): string {
   const pack = I18N[locale] || I18N.en;
   const template = pack[key] || I18N.en[key] || key;
-  return template.replace(/\{(\w+)\}/g, (_: string, name: string) => String(params[name] ?? ""));
+  return template
+    .replace(/\\\{([\w-]+)\}/g, "___ESCAPED_START___$1}")
+    .replace(/\{([\w-]+)\}/g, (_: string, name: string) => String(params[name] ?? ""))
+    .replace(/___ESCAPED_START___([\w-]+)\}/g, "{$1}");
 }

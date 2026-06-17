@@ -84,6 +84,10 @@ The **Upload path template** allows you to dynamically customize the S3 object k
 
 *Example:* `images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}` will upload a file to `images/2026/06/17/a1b2c3d4e5f67890a1b2c3d4e5f67890.png`.
 
+**Recommended Templates:**
+- By date: `images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}`
+- Keep original filename: `attachments/{yyyy}/{MM}/{filename}-{hash-short}.{ext}`
+
 ### Step 2: General Settings
 
 - **Image folder**: Only files under this folder are processed (default: `90-笔记系统/92-附件`).
@@ -96,17 +100,23 @@ The **Upload path template** allows you to dynamically customize the S3 object k
   - **Skip recently modified files**: Skip files modified within this time (default: 10 minutes).
   - **Minimum file size**: Ignore files smaller than this threshold in auto-scan.
 
+## License
+
+MIT
+
 ---
 
 ## 中文说明
 
 **S3 Image Sync** 是一款优雅、轻量且对移动端深度优化的 Obsidian 插件。它能自动扫描当前笔记中的本地图片，安全上传至 S3 兼容的云存储（如 Cloudflare R2、AWS S3、MinIO 等），并自动将笔记中的本地链接无缝替换为公共云端 URL。
 
+---
+
 > 📢 **Fork 与全新重构声明**
 >
 > 本项目是基于原版 [perinchiang/obsidian-plugins-attachment-imagebed-manager](https://github.com/perinchiang/obsidian-plugins-attachment-imagebed-manager) 的**重构与深度美化版本**。
 >
-> 本项目分支中的所有代码重构、UI界面重新设计、交互逻辑改进及文档编写，均由 **gemini-3.1-pro-preview** 提供协助并自主生成。
+> 本项目分支中的所有代码重构、UI界面重新设计、交互逻辑改进及文档编写，均由 **Gemini** 提供协助并自主生成。
 >
 > **我们在原版基础上做出了如下核心改进：**
 > 1. **专注图片同步**：砍掉了复杂沉重的通用附件分类（PDF、文档、大媒体）逻辑，代码体量大幅缩减，打造专门针对 Markdown 图片的轻量极致同步引擎。
@@ -127,9 +137,47 @@ The **Upload path template** allows you to dynamically customize the S3 object k
 3. 填写凭据，点击 **测试连接** 验证
 4. 打开一篇有本地图片的笔记，点击左侧栏的云图标 — 搞定！
 
-## 上传路径模板说明
+## 核心功能
 
-在设置的**第一步：连接云存储**中，你可以通过**上传路径模板**来自定义图片在云存储中的保存路径（S3 Object Key）。支持以下动态变量：
+- **S3 兼容存储**: 支持 Cloudflare R2、AWS S3、MinIO 及任意 S3 兼容服务。
+- **移动端兼容**: 桌面端和移动端均可使用，移动端也拥有优雅、独立的响应式布局。
+- **现代画廊视图**: 通过懒加载预览和流畅的选择控件，轻松浏览本地图片。
+- **安全替换 & 自动回退**: 原子性文件写入，检测并发编辑；上传中途失败时自动删除已上传文件并回滚。
+- **上传重试**: 网络错误时自动进行 3 次指数退避重试。
+- **删除策略**: 每次询问 / 立即删除 / 延迟删除（仅桌面端）。
+- **定期后台扫描**: 定时全库静默扫描，支持文件修改保护静默期（仅桌面端）。
+- **空运行模式**: 无需实际更改即可预览哪些图片将被替换。
+- **代码块感知**: 智能忽略 fenced code block 和行内代码中的图片。
+
+## 安装
+
+### 手动安装
+
+1. 从最新 Release 下载 `main.js`、`manifest.json` 和 `styles.css`。
+2. 复制到 `<vault>/.obsidian/plugins/s3-image-sync/` 目录下。
+3. 在 Obsidian 设置 → 第三方插件 中启用 **S3 Image Sync**。
+
+## 配置说明
+
+### 第一步：连接您的云存储
+
+选择您的存储服务商并填写凭据：
+
+| 配置项 | 描述 |
+|-------|-------------|
+| **存储服务商** | Cloudflare R2（推荐）、AWS S3、MinIO 或自定义 S3 |
+| **端点 URL** | 您的存储终结点，例如 `https://abc123.r2.cloudflarestorage.com` |
+| **存储桶名称** | 您创建的存储桶名称 |
+| **Access Key ID** | 来自您的存储服务商 API 设置中的 Access Key ID |
+| **Secret Access Key** | 来自您的存储服务商 API 设置中的 Secret Access Key |
+| **公开访问 URL** | 访问已上传文件的 URL 前缀，例如 `https://pub-xxx.r2.dev` |
+| **上传路径模板** | 默认值：`attachments/{ext}/{hash2}/{hash}.{ext}`（支持各种路径变量，详见下方说明） |
+
+点击 **测试连接** 按钮以验证您的设置是否正确。
+
+#### 上传路径模板变量
+
+通过**上传路径模板**来自定义图片在云存储中的保存路径（S3 Object Key）。支持以下动态变量：
 
 - `{ext}`：文件扩展名/后缀 (如 `png`、`jpg` 等)。
 - `{hash}`：64位完整 SHA-256 文件哈希值。
@@ -140,30 +188,23 @@ The **Upload path template** allows you to dynamically customize the S3 object k
 - `{MM}`：2位当前月份 (如 `06`)。
 - `{dd}`：2位当前日期 (如 `17`)。
 
-**默认模板：** `attachments/{ext}/{hash2}/{hash}.{ext}`
-* 示例：上传名为 `photo.png` 的文件时，若哈希前两位为 `a1`，完整哈希为 `a1b2c3d4e5f6...`，将保存为 `attachments/png/a1/a1b2c3d4e5f6....png`。
+*示例：* `images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}` 将保存为 `images/2026/06/17/a1b2c3d4e5f67890a1b2c3d4e5f67890.png`。
 
 **常用推荐模板：**
 - 按日期分类：`images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}`
 - 保留原始文件名：`attachments/{yyyy}/{MM}/{filename}-{hash-short}.{ext}`
 
-## 核心功能
+### 第二步：常规设置
 
-- **S3 兼容存储**: 支持 Cloudflare R2、AWS S3、MinIO 及任意 S3 兼容服务。
-- **移动端兼容**: 桌面端和移动端均可使用，移动端也拥有优雅、独立的响应式布局。
-- **安全替换 & 自动回退**: 原子性文件写入，检测并发编辑；上传中途失败时自动删除已上传文件并回滚。
-- **上传重试**: 网络错误时自动进行 3 次指数退避重试。
-- **删除策略**: 每次询问 / 立即删除 / 延迟删除（仅桌面端）。
-- **定期后台扫描**: 定时全库静默扫描，支持文件修改保护静默期（仅桌面端）。
-- **代码块感知**: 智能忽略 fenced code block 和行内代码中的图片。
-
-## 安装
-
-### 手动安装
-
-1. 从最新 Release 下载 `main.js`、`manifest.json` 和 `styles.css`。
-2. 复制到 `<vault>/.obsidian/plugins/s3-image-sync/` 目录下。
-3. 在 Obsidian 设置 → 第三方插件 中启用 **S3 Image Sync**。
+- **图片文件夹**：仅处理该文件夹下的文件（默认：`90-笔记系统/92-附件`）。
+- **删除策略**：替换为远程链接后，原本地文件的处理方式：
+  - *每次询问我*（推荐）— 弹出一个精致的确认对话框。
+  - *立即删除* — 立即将本地文件移入回收站。
+  - *延迟删除* — 在配置的时间（小时）后安排删除（仅限桌面端）。
+- **定期自动扫描全库**：自动在后台查找并替换符合条件的图片（仅限桌面端）。
+  - **扫描间隔**：自动扫描的频率（默认：30分钟）。
+  - **跳过最近修改的文件**：跳过在此时间内修改过的文件（默认：10分钟）。
+  - **自动扫描忽略的小图片**：在自动扫描中忽略小于此阈值的文件。
 
 ## 许可证
 

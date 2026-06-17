@@ -633,7 +633,7 @@ var I18N = {
     publicDomain: "Public access URL",
     publicDomainDesc: "The URL prefix for accessing uploaded files, e.g. https://pub-xxx.r2.dev",
     objectPathTemplate: "Upload path template",
-    pathTemplateDesc: "Variables: {ext} = extension (e.g. png), {hash} = 64-char SHA-256 hash, {hash-short} = 32-char short hash, {hash2} = first 2 chars of hash, {filename} = original name, {yyyy}/{MM}/{dd} = date. Default: attachments/{ext}/{hash2}/{hash}.{ext}",
+    pathTemplateDesc: "Dynamically customize the S3 upload path. Supported variables:\n\u2022 \\{ext}: File extension (e.g. png, jpg)\n\u2022 \\{hash}: 64-char full SHA-256 hash\n\u2022 \\{hash-short}: 32-char short hash\n\u2022 \\{hash2}: First 2 chars of hash (for partition)\n\u2022 \\{filename}: Original file name (excluding extension)\n\u2022 \\{yyyy}: Current year (4 digits)\n\u2022 \\{MM}: Current month (2 digits)\n\u2022 \\{dd}: Current day (2 digits)\nDefault: attachments/\\{ext}/\\{hash2}/\\{hash}.\\{ext}",
     testConnection: "Test connection",
     testConnectionDesc: "Click to verify your credentials are correct.",
     testing: "Testing...",
@@ -766,7 +766,7 @@ var I18N = {
     publicDomain: "\u516C\u5F00\u8BBF\u95EE URL",
     publicDomainDesc: "\u4E0A\u4F20\u6587\u4EF6\u7684\u8BBF\u95EE\u524D\u7F00\uFF0C\u4F8B\u5982 https://pub-xxx.r2.dev",
     objectPathTemplate: "\u4E0A\u4F20\u8DEF\u5F84\u6A21\u677F",
-    pathTemplateDesc: "\u53EF\u7528\u53D8\u91CF\uFF1A{ext} = \u6587\u4EF6\u6269\u5C55\u540D (\u5982 png)\uFF0C{hash} = 64\u4F4D\u5B8C\u6574 SHA-256 \u54C8\u5E0C\uFF0C{hash-short} = 32\u4F4D\u77ED\u54C8\u5E0C\uFF0C{hash2} = \u54C8\u5E0C\u524D2\u4F4D\u5B57\u7B26\uFF0C{filename} = \u539F\u59CB\u6587\u4EF6\u540D (\u4E0D\u542B\u6269\u5C55\u540D)\uFF0C{yyyy}/{MM}/{dd} = \u5F53\u524D\u5E74\u6708\u65E5\u3002\u9ED8\u8BA4\u503C\uFF1Aattachments/{ext}/{hash2}/{hash}.{ext}",
+    pathTemplateDesc: "\u81EA\u5B9A\u4E49 S3 \u4E0A\u4F20\u8DEF\u5F84\u3002\u652F\u6301\u4EE5\u4E0B\u53D8\u91CF\uFF1A\n\u2022 \\{ext}\uFF1A\u6587\u4EF6\u6269\u5C55\u540D/\u540E\u7F00 (\u5982 png\u3001jpg \u7B49)\n\u2022 \\{hash}\uFF1A64\u4F4D\u5B8C\u6574 SHA-256 \u6587\u4EF6\u54C8\u5E0C\u503C\n\u2022 \\{hash-short}\uFF1A32\u4F4D\u77ED SHA-256 \u6587\u4EF6\u54C8\u5E0C\u503C\n\u2022 \\{hash2}\uFF1ASHA-256 \u54C8\u5E0C\u503C\u7684\u524D2\u4F4D\u5B57\u7B26 (\u9002\u5408\u6D77\u91CF\u6587\u4EF6\u4E8C\u7EA7\u5206\u6D41)\n\u2022 \\{filename}\uFF1A\u539F\u59CB\u6587\u4EF6\u540D (\u4E0D\u542B\u6269\u5C55\u540D)\n\u2022 \\{yyyy}\uFF1A4\u4F4D\u5F53\u524D\u5E74\u4EFD (\u5982 2026)\n\u2022 \\{MM}\uFF1A2\u4F4D\u5F53\u524D\u6708\u4EFD (\u5982 06)\n\u2022 \\{dd}\uFF1A2\u4F4D\u5F53\u524D\u65E5\u671F (\u5982 17)\n\u9ED8\u8BA4\u503C\uFF1Aattachments/\\{ext}/\\{hash2}/\\{hash}.\\{ext}",
     testConnection: "\u6D4B\u8BD5\u8FDE\u63A5",
     testConnectionDesc: "\u70B9\u51FB\u9A8C\u8BC1\u51ED\u636E\u662F\u5426\u6B63\u786E\u3002",
     testing: "\u6D4B\u8BD5\u4E2D...",
@@ -831,7 +831,7 @@ function detectLocaleFromApp(getLanguage2) {
 function t(locale, key, params = {}) {
   const pack = I18N[locale] || I18N.en;
   const template = pack[key] || I18N.en[key] || key;
-  return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));
+  return template.replace(/\\\{([\w-]+)\}/g, "___ESCAPED_START___$1}").replace(/\{([\w-]+)\}/g, (_, name) => String(params[name] ?? "")).replace(/___ESCAPED_START___([\w-]+)\}/g, "{$1}");
 }
 
 // src/candidate-modal.ts
@@ -1203,7 +1203,14 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
         });
       });
     }
-    new import_obsidian4.Setting(containerEl).setName(t2("objectPathTemplate")).setDesc(t2("pathTemplateDesc")).addText(
+    const descFragment = document.createDocumentFragment();
+    t2("pathTemplateDesc").split("\n").forEach((line, idx) => {
+      if (idx > 0) {
+        descFragment.appendChild(document.createElement("br"));
+      }
+      descFragment.appendChild(document.createTextNode(line));
+    });
+    new import_obsidian4.Setting(containerEl).setName(t2("objectPathTemplate")).setDesc(descFragment).addText(
       (text) => text.setPlaceholder("attachments/{ext}/{hash2}/{hash}.{ext}").setValue(String(this.plugin.settings.s3.pathTemplate || "")).onChange((value) => {
         this.plugin.settings.s3.pathTemplate = value.trim();
         debouncedSave();
