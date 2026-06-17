@@ -65,9 +65,24 @@ Choose your storage provider and fill in the credentials:
 | **Access Key ID** | From your storage provider's API settings |
 | **Secret Access Key** | From your storage provider's API settings |
 | **Public access URL** | URL prefix for accessing files, e.g. `https://pub-xxx.r2.dev` |
-| **Upload path template** | Default: `images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}` (supports various path variables) |
+| **Upload path template** | Default: `attachments/{ext}/{hash2}/{hash}.{ext}` (supports various path variables, see details below) |
 
 Click **Test connection** to verify your settings.
+
+#### Upload Path Template Variables
+
+The **Upload path template** allows you to dynamically customize the S3 object key (path) for uploaded files. The following variables are supported:
+
+- `{ext}`: File extension (e.g. `png`, `jpg`).
+- `{hash}`: 64-character full SHA-256 hash of the file.
+- `{hash-short}`: 32-character short SHA-256 hash of the file.
+- `{hash2}`: First 2 characters of the file hash (useful for folder partition/sharding).
+- `{filename}`: Original file name (excluding extension).
+- `{yyyy}`: Current year (4 digits, e.g. `2026`).
+- `{MM}`: Current month (2 digits, e.g. `06`).
+- `{dd}`: Current day (2 digits, e.g. `17`).
+
+*Example:* `images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}` will upload a file to `images/2026/06/17/a1b2c3d4e5f67890a1b2c3d4e5f67890.png`.
 
 ### Step 2: General Settings
 
@@ -111,6 +126,26 @@ Click **Test connection** to verify your settings.
 2. 在 **第一步：连接云存储** 中选择服务商（推荐 Cloudflare R2）
 3. 填写凭据，点击 **测试连接** 验证
 4. 打开一篇有本地图片的笔记，点击左侧栏的云图标 — 搞定！
+
+## 上传路径模板说明
+
+在设置的**第一步：连接云存储**中，你可以通过**上传路径模板**来自定义图片在云存储中的保存路径（S3 Object Key）。支持以下动态变量：
+
+- `{ext}`：文件扩展名/后缀 (如 `png`、`jpg` 等)。
+- `{hash}`：64位完整 SHA-256 文件哈希值。
+- `{hash-short}`：32位短 SHA-256 文件哈希值。
+- `{hash2}`：SHA-256 文件哈希值的前2位字符（非常适合用于云存储的海量文件二级分流，避免单个文件夹下文件过多）。
+- `{filename}`：原始文件名 (不含扩展名)。
+- `{yyyy}`：4位当前年份 (如 `2026`)。
+- `{MM}`：2位当前月份 (如 `06`)。
+- `{dd}`：2位当前日期 (如 `17`)。
+
+**默认模板：** `attachments/{ext}/{hash2}/{hash}.{ext}`
+* 示例：上传名为 `photo.png` 的文件时，若哈希前两位为 `a1`，完整哈希为 `a1b2c3d4e5f6...`，将保存为 `attachments/png/a1/a1b2c3d4e5f6....png`。
+
+**常用推荐模板：**
+- 按日期分类：`images/{yyyy}/{MM}/{dd}/{hash-short}.{ext}`
+- 保留原始文件名：`attachments/{yyyy}/{MM}/{filename}-{hash-short}.{ext}`
 
 ## 核心功能
 

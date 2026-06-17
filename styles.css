@@ -1,19 +1,19 @@
 /* ── Modal & Layout ── */
-.attachment-imagebed-manager-modal {
-  padding: 0 !important;
-  width: 90vw !important;
-  max-width: 800px !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  background: var(--background-primary) !important;
+.modal.attachment-imagebed-manager-modal {
+  padding: 0;
+  width: 90vw;
+  max-width: 800px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--background-primary);
 }
 
-.attachment-imagebed-manager-modal .modal-content {
-  padding: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  max-height: 80vh !important;
-  overflow: hidden !important;
+.modal.attachment-imagebed-manager-modal .modal-content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  overflow: hidden;
 }
 
 .attachment-imagebed-manager-modal-content {

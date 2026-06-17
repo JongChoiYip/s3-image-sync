@@ -633,7 +633,7 @@ var I18N = {
     publicDomain: "Public access URL",
     publicDomainDesc: "The URL prefix for accessing uploaded files, e.g. https://pub-xxx.r2.dev",
     objectPathTemplate: "Upload path template",
-    pathTemplateDesc: "Variables: {ext} = extension, {hash} = file hash, {hash-short} = 32-char short hash, {hash2} = first 2 chars of hash, {filename} = original name, {yyyy}/{MM}/{dd} = date. Default works for most cases.",
+    pathTemplateDesc: "Variables: {ext} = extension (e.g. png), {hash} = 64-char SHA-256 hash, {hash-short} = 32-char short hash, {hash2} = first 2 chars of hash, {filename} = original name, {yyyy}/{MM}/{dd} = date. Default: attachments/{ext}/{hash2}/{hash}.{ext}",
     testConnection: "Test connection",
     testConnectionDesc: "Click to verify your credentials are correct.",
     testing: "Testing...",
@@ -766,7 +766,7 @@ var I18N = {
     publicDomain: "\u516C\u5F00\u8BBF\u95EE URL",
     publicDomainDesc: "\u4E0A\u4F20\u6587\u4EF6\u7684\u8BBF\u95EE\u524D\u7F00\uFF0C\u4F8B\u5982 https://pub-xxx.r2.dev",
     objectPathTemplate: "\u4E0A\u4F20\u8DEF\u5F84\u6A21\u677F",
-    pathTemplateDesc: "\u53EF\u7528\u53D8\u91CF\uFF1A{ext} = \u540E\u7F00\uFF0C{hash} = \u6587\u4EF6\u54C8\u5E0C\uFF0C{hash-short} = 32\u4F4D\u77ED\u54C8\u5E0C\uFF0C{hash2} = \u54C8\u5E0C\u524D2\u4F4D\uFF0C{filename} = \u539F\u59CB\u6587\u4EF6\u540D\uFF0C{yyyy}/{MM}/{dd} = \u65E5\u671F\u3002\u9ED8\u8BA4\u503C\u9002\u7528\u4E8E\u5927\u591A\u6570\u60C5\u51B5\u3002",
+    pathTemplateDesc: "\u53EF\u7528\u53D8\u91CF\uFF1A{ext} = \u6587\u4EF6\u6269\u5C55\u540D (\u5982 png)\uFF0C{hash} = 64\u4F4D\u5B8C\u6574 SHA-256 \u54C8\u5E0C\uFF0C{hash-short} = 32\u4F4D\u77ED\u54C8\u5E0C\uFF0C{hash2} = \u54C8\u5E0C\u524D2\u4F4D\u5B57\u7B26\uFF0C{filename} = \u539F\u59CB\u6587\u4EF6\u540D (\u4E0D\u542B\u6269\u5C55\u540D)\uFF0C{yyyy}/{MM}/{dd} = \u5F53\u524D\u5E74\u6708\u65E5\u3002\u9ED8\u8BA4\u503C\uFF1Aattachments/{ext}/{hash2}/{hash}.{ext}",
     testConnection: "\u6D4B\u8BD5\u8FDE\u63A5",
     testConnectionDesc: "\u70B9\u51FB\u9A8C\u8BC1\u51ED\u636E\u662F\u5426\u6B63\u786E\u3002",
     testing: "\u6D4B\u8BD5\u4E2D...",
@@ -861,7 +861,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     const { contentEl } = this;
     contentEl.empty();
     const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const header = container.createDiv({ cls: "attachment-imagebed-manager-header" });
     header.createEl("h2", { text: t2("replaceTitle") });
     header.createEl("p", {
@@ -880,7 +880,12 @@ var CandidateModal = class extends import_obsidian2.Modal {
       this.cardMap.set(path, card);
       const previewArea = card.createDiv({ cls: "attachment-imagebed-manager-gallery-preview" });
       const checkIcon = previewArea.createDiv({ cls: "attachment-imagebed-manager-gallery-check" });
-      checkIcon.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`;
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      const svgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      svgPath.setAttribute("d", "M20 6L9 17l-5-5");
+      svg.appendChild(svgPath);
+      checkIcon.appendChild(svg);
       if (isPreviewableImage(candidate.file.extension)) {
         const image = previewArea.createEl("img");
         image.src = this.app.vault.getResourcePath(candidate.file);
@@ -926,7 +931,9 @@ var CandidateModal = class extends import_obsidian2.Modal {
       text: t2("uploadReplace"),
       cls: "mod-cta"
     });
-    uploadBtn.addEventListener("click", () => this.replaceSelected());
+    uploadBtn.addEventListener("click", () => {
+      void this.replaceSelected();
+    });
   }
   toggleSelection(path) {
     if (this.selected.has(path)) {
@@ -959,7 +966,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     this.selectAllCb.indeterminate = this.selected.size > 0 && this.selected.size < this.candidates.length;
   }
   async replaceSelected() {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const chosen = this.candidates.filter((c) => this.selected.has(c.file.path));
     if (!chosen.length) {
       new import_obsidian2.Notice(t2("noSelected"));
@@ -980,7 +987,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     }
   }
   renderProgress(total) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
     const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
@@ -992,7 +999,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     });
     const barContainer = view.createDiv({ cls: "attachment-imagebed-manager-progress-bar-container" });
     this.progressFill = barContainer.createDiv({ cls: "attachment-imagebed-manager-progress-fill" });
-    this.progressFill.style.width = "0%";
+    this.progressFill.setCssStyles({ width: "0%" });
     this.progressText = view.createDiv({
       text: t2("starting"),
       cls: "attachment-imagebed-manager-progress-text"
@@ -1001,10 +1008,10 @@ var CandidateModal = class extends import_obsidian2.Modal {
   updateProgress(state) {
     if (!this.progressFill || !this.progressText)
       return;
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const total = Math.max(1, state.total || 1);
     const value = Math.min(100, Math.round((state.current || 0) / total * 100));
-    this.progressFill.style.width = `${value}%`;
+    this.progressFill.setCssStyles({ width: `${value}%` });
     const phaseMap = {
       uploading: t2("phaseUploading"),
       uploaded: t2("phaseUploaded"),
@@ -1017,7 +1024,7 @@ var CandidateModal = class extends import_obsidian2.Modal {
     this.progressText.setText(`${phaseText}: ${state.label || ""} (${state.current || 0}/${total})`);
   }
   renderDeleteConfirmation(localFiles) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
     const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
@@ -1042,21 +1049,23 @@ var CandidateModal = class extends import_obsidian2.Modal {
       text: t2("deleteLocal"),
       cls: "mod-warning"
     });
-    deleteBtn.addEventListener("click", async () => {
-      try {
-        await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
-        new import_obsidian2.Notice(t2("movedToTrash", { count: localFiles.length }));
-        this.close();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error("Attachment local delete failed", error);
-        new import_obsidian2.Notice(t2("localDeleteFailed", { error: message }), 1e4);
-        this.renderError(error instanceof Error ? error : new Error(message));
-      }
+    deleteBtn.addEventListener("click", () => {
+      void (async () => {
+        try {
+          await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
+          new import_obsidian2.Notice(t2("movedToTrash", { count: localFiles.length }));
+          this.close();
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("Attachment local delete failed", error);
+          new import_obsidian2.Notice(t2("localDeleteFailed", { error: message }), 1e4);
+          this.renderError(error instanceof Error ? error : new Error(message));
+        }
+      })();
     });
   }
   renderError(error) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
     const container = contentEl.createDiv({ cls: "attachment-imagebed-manager-modal-content" });
@@ -1085,7 +1094,7 @@ var DryRunModal = class extends import_obsidian3.Modal {
     this.samples = samples;
   }
   onOpen() {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const { contentEl } = this;
     contentEl.empty();
     new import_obsidian3.Setting(contentEl).setName(t2("vaultScanTitle")).setHeading();
@@ -1114,9 +1123,12 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     this.plugin = plugin;
   }
   display() {
+    this.renderSettings();
+  }
+  renderSettings() {
     const { containerEl } = this;
     containerEl.empty();
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     new import_obsidian4.Setting(containerEl).setName(t2("settingsTitle")).setHeading();
     this.renderSetupStatus(containerEl);
     this.renderS3Settings(containerEl);
@@ -1131,7 +1143,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     return !!(s3.endpoint.trim() && s3.bucketName.trim() && s3.accessKeyId.trim() && s3.secretAccessKey.trim() && s3.customDomainName.trim());
   }
   renderSetupStatus(containerEl) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const configured = this.isS3Configured();
     const statusEl = containerEl.createDiv({ cls: "attachment-imagebed-manager-status" });
     const icon = statusEl.createEl("span", {
@@ -1143,7 +1155,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     });
   }
   renderS3Settings(containerEl) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
     new import_obsidian4.Setting(containerEl).setName(t2("s3Storage")).setHeading();
@@ -1161,7 +1173,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
           this.plugin.settings.s3.region = "us-east-1";
         }
         void save();
-        this.display();
+        this.renderSettings();
       })
     );
     if (this.plugin.settings.s3.provider !== "r2") {
@@ -1221,7 +1233,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     );
   }
   renderGeneralSettings(containerEl) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const save = () => this.plugin.saveSettings();
     const debouncedSave = debounce(save, 500);
     new import_obsidian4.Setting(containerEl).setName(t2("generalSettings")).setHeading();
@@ -1246,7 +1258,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
       dropdown.setValue(this.plugin.settings.deletePolicy).onChange((value) => {
         this.plugin.settings.deletePolicy = value;
         void save();
-        this.display();
+        this.renderSettings();
       });
     });
     if (!this.plugin.isMobile && this.plugin.settings.deletePolicy === "delayed") {
@@ -1263,7 +1275,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
           this.plugin.settings.autoScanEnabled = value;
           this.plugin.configureAutoScan();
           void save();
-          this.display();
+          this.renderSettings();
         })
       );
       if (this.plugin.settings.autoScanEnabled) {
@@ -1295,7 +1307,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     }
   }
   renderFileTypeSettings(containerEl) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     new import_obsidian4.Setting(containerEl).setName(t2("fileTypes")).setHeading();
     containerEl.createEl("p", {
       text: t2("fileTypesDesc"),
@@ -1307,7 +1319,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     this.renderCustomExtensions(containerEl);
   }
   renderCategory(containerEl, category) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const settings = this.plugin.settings;
     const enabledSet = new Set(settings.enabledExtensions);
     const autoSet = new Set(settings.autoCandidateExts);
@@ -1349,7 +1361,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
           enabledSet.add(ext);
         settings.enabledExtensions = Array.from(enabledSet);
         void this.plugin.saveSettings();
-        this.display();
+        this.renderSettings();
       });
     }
     catCheckbox.addEventListener("change", () => {
@@ -1361,7 +1373,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
       }
       settings.enabledExtensions = Array.from(enabledSet);
       void this.plugin.saveSettings();
-      this.display();
+      this.renderSettings();
     });
     autoCheckbox.addEventListener("change", () => {
       const enabledInCat = category.extensions.filter((e) => enabledSet.has(e));
@@ -1373,7 +1385,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
       }
       settings.autoCandidateExts = Array.from(autoSet);
       void this.plugin.saveSettings();
-      this.display();
+      this.renderSettings();
     });
     let expanded = defaultExpanded;
     toggleBtn.addEventListener("click", () => {
@@ -1383,7 +1395,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     });
   }
   renderCustomExtensions(containerEl) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const settings = this.plugin.settings;
     const enabledSet = new Set(settings.enabledExtensions);
     const autoSet = new Set(settings.autoCandidateExts);
@@ -1412,7 +1424,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
       }
       settings.enabledExtensions = Array.from(enabledSet);
       void this.plugin.saveSettings();
-      this.display();
+      this.renderSettings();
     });
     if (customExts.length > 0) {
       const tagContainer = card.createDiv({ cls: "attachment-imagebed-manager-custom-tags" });
@@ -1427,7 +1439,7 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
             enabledSet.delete(ext);
           settings.enabledExtensions = Array.from(enabledSet);
           void this.plugin.saveSettings();
-          this.display();
+          this.renderSettings();
         });
         tag.createSpan({ text: `.${ext}` });
         const autoCb = tag.createEl("input", { type: "checkbox" });
@@ -1454,13 +1466,13 @@ var S3ImageSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
           autoSet.delete(ext);
           settings.autoCandidateExts = Array.from(autoSet);
           void this.plugin.saveSettings();
-          this.display();
+          this.renderSettings();
         });
       }
     }
   }
   renderLogSection(containerEl) {
-    const t2 = this.plugin.t.bind(this.plugin);
+    const t2 = (k, p) => this.plugin.t(k, p);
     const settings = this.plugin.settings;
     new import_obsidian4.Setting(containerEl).setName(t2("recentLog")).setHeading();
     if ((settings.pendingDeletes || []).length) {
@@ -1618,7 +1630,8 @@ var S3ImageSyncPlugin = class extends import_obsidian5.Plugin {
       return;
     try {
       this.ensureS3Settings();
-    } catch (_error) {
+    } catch {
+      return;
     }
     const minBytes = Math.max(0, Number(this.settings.autoScanMinSizeMiB) || 0) * 1024 * 1024;
     const files = this.app.vault.getMarkdownFiles();

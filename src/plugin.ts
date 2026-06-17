@@ -171,7 +171,8 @@ export default class S3ImageSyncPlugin extends Plugin {
     if (!this.settings.enabled || !this.settings.autoScanEnabled) return;
     try {
       this.ensureS3Settings();
-    } catch (_error) {
+    } catch {
+      return;
     }
     const minBytes = Math.max(0, Number(this.settings.autoScanMinSizeMiB) || 0) * 1024 * 1024;
     const files = this.app.vault.getMarkdownFiles();
@@ -501,7 +502,7 @@ export default class S3ImageSyncPlugin extends Plugin {
         });
         continue;
       }
-      await this.app.vault.trash(file, true);
+      await this.app.fileManager.trashFile(file);
       this.addLog({
         status,
         notePath: noteFile.path,

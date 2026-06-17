@@ -63,7 +63,12 @@ export class CandidateModal extends Modal {
       
       // Custom Checkbox Indicator overlay on top-left of image preview
       const checkIcon = previewArea.createDiv({ cls: "attachment-imagebed-manager-gallery-check" });
-      checkIcon.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`;
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      const svgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      svgPath.setAttribute("d", "M20 6L9 17l-5-5");
+      svg.appendChild(svgPath);
+      checkIcon.appendChild(svg);
 
       if (isPreviewableImage(candidate.file.extension)) {
         const image = previewArea.createEl("img");
@@ -116,11 +121,13 @@ export class CandidateModal extends Modal {
     const cancelBtn = actions.createEl("button", { text: t("cancel") });
     cancelBtn.addEventListener("click", () => this.close());
     
-    const uploadBtn = actions.createEl("button", { 
-      text: t("uploadReplace"), 
-      cls: "mod-cta" 
+    const uploadBtn = actions.createEl("button", {
+      text: t("uploadReplace"),
+      cls: "mod-cta"
     });
-    uploadBtn.addEventListener("click", () => this.replaceSelected());
+    uploadBtn.addEventListener("click", () => {
+      void this.replaceSelected();
+    });
   }
 
   private toggleSelection(path: string): void {
@@ -249,21 +256,23 @@ export class CandidateModal extends Modal {
     const keepBtn = actions.createEl("button", { text: t("keepLocal") });
     keepBtn.addEventListener("click", () => this.close());
 
-    const deleteBtn = actions.createEl("button", { 
-      text: t("deleteLocal"), 
-      cls: "mod-warning" 
+    const deleteBtn = actions.createEl("button", {
+      text: t("deleteLocal"),
+      cls: "mod-warning"
     });
-    deleteBtn.addEventListener("click", async () => {
-      try {
-        await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
-        new Notice(t("movedToTrash", { count: localFiles.length }));
-        this.close();
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error("Attachment local delete failed", error);
-        new Notice(t("localDeleteFailed", { error: message }), 10000);
-        this.renderError(error instanceof Error ? error : new Error(message));
-      }
+    deleteBtn.addEventListener("click", () => {
+      void (async () => {
+        try {
+          await this.plugin.deleteLocalFileRecords(this.noteFile, localFiles, "manual-delete");
+          new Notice(t("movedToTrash", { count: localFiles.length }));
+          this.close();
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("Attachment local delete failed", error);
+          new Notice(t("localDeleteFailed", { error: message }), 10000);
+          this.renderError(error instanceof Error ? error : new Error(message));
+        }
+      })();
     });
   }
 

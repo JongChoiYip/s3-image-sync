@@ -21,6 +21,10 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
   }
 
   display(): void {
+    this.renderSettings();
+  }
+
+  private renderSettings(): void {
     const { containerEl } = this;
     containerEl.empty();
     const t = (k: string, p?: Record<string, unknown>) => this.plugin.t(k, p);
@@ -91,7 +95,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
               this.plugin.settings.s3.region = "us-east-1";
             }
             void save();
-            this.display();
+            this.renderSettings();
           })
       );
 
@@ -213,7 +217,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
           .onChange((value) => {
             this.plugin.settings.deletePolicy = value as DeletePolicy;
             void save();
-            this.display();
+            this.renderSettings();
           });
       });
 
@@ -238,7 +242,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
           this.plugin.settings.autoScanEnabled = value;
           this.plugin.configureAutoScan();
           void save();
-          this.display();
+          this.renderSettings();
         })
         );
 
@@ -353,7 +357,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
         else enabledSet.add(ext);
         settings.enabledExtensions = Array.from(enabledSet);
         void this.plugin.saveSettings();
-        this.display();
+        this.renderSettings();
       });
     }
 
@@ -365,7 +369,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
       }
       settings.enabledExtensions = Array.from(enabledSet);
       void this.plugin.saveSettings();
-      this.display();
+      this.renderSettings();
     });
 
     autoCheckbox.addEventListener("change", () => {
@@ -376,7 +380,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
       }
       settings.autoCandidateExts = Array.from(autoSet);
       void this.plugin.saveSettings();
-      this.display();
+      this.renderSettings();
     });
 
     let expanded = defaultExpanded;
@@ -420,7 +424,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
       }
       settings.enabledExtensions = Array.from(enabledSet);
       void this.plugin.saveSettings();
-      this.display();
+      this.renderSettings();
     });
 
     if (customExts.length > 0) {
@@ -435,7 +439,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
           else enabledSet.delete(ext);
           settings.enabledExtensions = Array.from(enabledSet);
           void this.plugin.saveSettings();
-          this.display();
+          this.renderSettings();
         });
 
         tag.createSpan({ text: `.${ext}` });
@@ -464,7 +468,7 @@ export class S3ImageSyncSettingTab extends PluginSettingTab {
           autoSet.delete(ext);
           settings.autoCandidateExts = Array.from(autoSet);
           void this.plugin.saveSettings();
-          this.display();
+          this.renderSettings();
         });
       }
     }
